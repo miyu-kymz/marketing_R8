@@ -1,0 +1,2235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarketPBL | 久留米商圏 営業利益バトル＆損益分析シミュレーター</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans JP', 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .kurume-map-bg {
+      background-color: #f1f5f9;
+      background-image: 
+        radial-gradient(#94a3b8 0.75px, transparent 0.75px), 
+        linear-gradient(to right, rgba(226, 232, 240, 0.5) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(226, 232, 240, 0.5) 1px, transparent 1px);
+      background-size: 24px 24px, 48px 48px, 48px 48px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-indigo-700 via-blue-700 to-violet-800 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center font-black text-xl text-amber-300 shadow-inner">
+          久
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 font-extrabold shadow-sm">久留米商圏PBL</span>
+            <span class="text-xs text-blue-200">25時間マーケティング演習</span>
+          </div>
+          <h1 class="text-base sm:text-lg font-black tracking-tight">久留米エリア 営業利益競争＆損益要因分析シミュレーター</h1>
+        </div>
+      </div>
+
+      <!-- Header Action Controls -->
+      <div class="flex items-center gap-2">
+        <!-- 教員専用 管理者設定ボタン -->
+        <button onclick="openAdminModal()" class="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-sm">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          🔐 管理者設定
+        </button>
+        <button id="btn-quick-sample" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-blue-100 transition flex items-center gap-1.5 border border-white/15">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
+          サンプル4店舗
+        </button>
+        <button id="btn-reset-all" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-rose-500/30 text-rose-200 transition flex items-center gap-1 border border-white/15">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          初期化
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tab Navigation（生徒用：4画面に集約） -->
+  <div class="bg-white border-b border-slate-200 sticky top-[58px] z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto custom-scrollbar">
+      <div class="flex space-x-1 sm:space-x-2 py-2">
+        <button class="nav-tab active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 bg-indigo-600 text-white shadow-sm transition" data-tab="tab-teams">
+          <i data-lucide="store" class="w-4 h-4"></i>
+          ① 4P店舗設定 (<span id="team-badge-count">0</span>)
+        </button>
+        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5" data-tab="tab-map">
+          <i data-lucide="map" class="w-4 h-4 text-blue-500"></i>
+          ② 久留米商圏マップ
+        </button>
+        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5" data-tab="tab-voting">
+          <i data-lucide="check-square" class="w-4 h-4 text-orange-500"></i>
+          ③ 放課後投票（どこ行く？）
+          <span id="vote-counter-badge" class="px-1.5 py-0.2 rounded-full bg-orange-100 text-orange-700 text-[10px] font-black">0票</span>
+        </button>
+        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5" data-tab="tab-simulation">
+          <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i>
+          ④ シミュレーション＆損益分析
+          <span id="event-active-dot" class="hidden w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
+
+    <!-- TAB 1: 4P STORE MANAGEMENT -->
+    <div id="tab-teams" class="tab-content space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Store Input Form -->
+        <div class="lg:col-span-5 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+                <i data-lucide="calculator" class="w-5 h-5 text-indigo-600"></i>
+                出店・価格・コスト構造の設計（4P）
+              </h2>
+              <p class="text-xs text-slate-500">価格・変動費（1個あたり）と月額固定費を設定</p>
+            </div>
+            <span id="editing-indicator" class="hidden text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">編集中</span>
+          </div>
+
+          <form id="store-form" class="space-y-3.5 text-xs">
+            <input type="hidden" id="edit-team-id" value="">
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">班名 / チーム名</label>
+                <input type="text" id="team-name" placeholder="例: 1班 (男子運動部)" required class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">店名</label>
+                <input type="text" id="store-name" placeholder="例: 爆盛からあげ天国" required class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-bold">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">アイコン</label>
+                <input type="text" id="store-icon" value="🍗" required class="w-full px-2 py-1.5 rounded-xl border border-slate-200 text-center text-lg">
+              </div>
+              <div class="col-span-2">
+                <label class="block font-bold text-slate-600 mb-1">業態カテゴリ</label>
+                <select id="store-category" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs bg-white">
+                  <option value="snack">軽食・ファストフード（ボリューム・手軽さ）</option>
+                  <option value="cafe">カフェ・スイーツ（映え・トーク）</option>
+                  <option value="study">自習・コワーキング（静寂・電源）</option>
+                  <option value="convenience">ミニ売店スタンド（スピード・安さ）</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Product & Variable Costs -->
+            <div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-2.5">
+              <span class="text-[10px] font-black text-indigo-700 uppercase tracking-wider block">1. Product & Price (価格と変動費設計)</span>
+              
+              <div class="p-2.5 bg-white rounded-lg border border-indigo-200/70 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-extrabold text-indigo-900 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-indigo-600"></span> ★ 主力商品（看板メニュー）
+                  </span>
+                  <span id="main-margin-badge" class="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-mono font-bold">限界利益: ¥280 (62%)</span>
+                </div>
+                <div>
+                  <input type="text" id="prod-name" placeholder="商品名: 秘伝タレ唐揚げ丼 (メガ盛)" required class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-bold">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">販売価格 (円)</label>
+                    <input type="number" id="price-point" value="450" min="100" max="2500" step="10" required oninput="calcMarginPreview()" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-xs font-mono font-bold">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">変動費 (円/個: 原材料・包材)</label>
+                    <input type="number" id="unit-variable-cost" value="170" min="10" max="2000" step="10" required oninput="calcMarginPreview()" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-xs font-mono font-bold text-rose-600">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sub-products -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-slate-700">追加商品・サブメニュー（複数登録可）</span>
+                  <button type="button" id="btn-add-subproduct" class="text-[10px] font-black bg-indigo-600 text-white px-2 py-0.5 rounded-md hover:bg-indigo-700 transition flex items-center gap-0.5 shadow-xs">
+                    <i data-lucide="plus" class="w-3 h-3"></i> 商品を追加
+                  </button>
+                </div>
+                <div id="subproducts-container" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pr-0.5"></div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-indigo-100">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-500 mb-0.5">品質傾向</label>
+                  <select id="prod-quality" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-xs bg-white">
+                    <option value="budget">コスパ重視（量・安さ）</option>
+                    <option value="standard" selected>スタンダード（手頃）</option>
+                    <option value="premium">プレミアム（高付加価値）</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-500 mb-0.5">空間の雰囲気</label>
+                  <select id="prod-vibe" onchange="toggleCustomField('prod-vibe', 'prod-vibe-custom')" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-xs bg-white">
+                    <option value="chill">賑やか・たまり場</option>
+                    <option value="aesthetic">写真映え・おしゃれ</option>
+                    <option value="quiet">静寂・集中・Wi-Fi</option>
+                    <option value="speed">スピード・即提供</option>
+                    <option value="__custom__">その他（自由に設定を入力）</option>
+                  </select>
+                  <input type="text" id="prod-vibe-custom" placeholder="雰囲気を入力（例: テラス席完備）" class="hidden mt-1 w-full px-2 py-1 rounded-lg border border-indigo-300 bg-indigo-50/50 text-xs">
+                </div>
+              </div>
+            </div>
+
+            <!-- Place & Fixed Costs -->
+            <div class="p-3 bg-amber-50/50 rounded-xl border border-amber-100 space-y-2">
+              <span class="text-[10px] font-black text-amber-700 uppercase tracking-wider block">2. Place & Fixed Cost (立地と月額固定費内訳)</span>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-0.5">出店立地エリア（テナント家賃）</label>
+                <select id="place-location" onchange="syncLocationRent()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs bg-white">
+                  <option value="gate">学校エリア（久留米高校前周辺 / 家賃: ¥60,000）</option>
+                  <option value="station">駅前・オフィスエリア（西鉄久留米駅 / 家賃: ¥100,000）</option>
+                  <option value="arcade">商店街エリア（六ツ門・一番街 / 家賃: ¥75,000）</option>
+                  <option value="residential">住宅エリア（南久留米駅周辺 / 家賃: ¥40,000）</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 bg-white p-2 rounded-lg border border-amber-200 text-[10px]">
+                <div>
+                  <label class="block font-bold text-slate-500 mb-0.5">月額家賃(円)</label>
+                  <input type="number" id="fc-rent" value="60000" readonly class="w-full px-1.5 py-1 rounded border border-slate-200 bg-slate-100 font-mono font-bold text-slate-600">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 mb-0.5">月額人件費(円)</label>
+                  <input type="number" id="fc-labor" value="40000" min="0" step="5000" class="w-full px-1.5 py-1 rounded border border-slate-200 font-mono font-bold text-slate-700">
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 mb-0.5">光熱費・諸経費(円)</label>
+                  <input type="number" id="fc-utilities" value="20000" min="0" step="5000" class="w-full px-1.5 py-1 rounded border border-slate-200 font-mono font-bold text-slate-700">
+                </div>
+              </div>
+            </div>
+
+            <!-- Promotion & Target Persona -->
+            <div class="p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-2">
+              <span class="text-[10px] font-black text-rose-700 uppercase tracking-wider block">3. Promotion (販促プロモーション)</span>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 mb-0.5">メイン宣伝手法</label>
+                  <select id="promo-channel" onchange="toggleCustomField('promo-channel', 'promo-channel-custom')" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs bg-white">
+                    <option value="sns_reels">TikTok / リール動画拡散</option>
+                    <option value="school_flyer">校門前のチラシ配布</option>
+                    <option value="coupon">学生証提示の学割クーポン</option>
+                    <option value="word_of_mouth">友達紹介口コミ特典</option>
+                    <option value="__custom__">その他（自由に設定を入力）</option>
+                  </select>
+                  <input type="text" id="promo-channel-custom" placeholder="手法を入力（例: スタンプラリー連携）" class="hidden mt-1 w-full px-2 py-1 rounded-lg border border-rose-300 bg-rose-50/50 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 mb-0.5">ターゲットペルソナ</label>
+                  <select id="target-persona" onchange="toggleCustomField('target-persona', 'target-persona-custom')" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs bg-white">
+                    <option value="sports">① 腹ペコ部活生</option>
+                    <option value="trend">② トレンド女子</option>
+                    <option value="study">③ 勉強・作業派</option>
+                    <option value="cost">④ コスパ節約派</option>
+                    <option value="commuter">⑤ 駅通勤者</option>
+                    <option value="family">⑥ 近隣ファミリー</option>
+                    <option value="__custom__">その他（自由に設定を入力）</option>
+                  </select>
+                  <input type="text" id="target-persona-custom" placeholder="ペルソナを入力（例: 地元シニア層）" class="hidden mt-1 w-full px-2 py-1 rounded-lg border border-rose-300 bg-rose-50/50 text-xs">
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+              <button type="submit" id="btn-submit-store" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-1.5 text-xs">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span id="btn-submit-text">店舗をマーケットに追加</span>
+              </button>
+              <button type="button" id="btn-cancel-edit" class="hidden px-3 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-xl text-xs font-bold">
+                取消
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Registered Stores Grid -->
+        <div class="lg:col-span-7 flex flex-col space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              <i data-lucide="layout-grid" class="w-5 h-5 text-indigo-600"></i>
+              参入中の店舗一覧（コスト構造比較）
+            </h2>
+            <button onclick="switchTab('tab-voting')" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-black px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5">
+              <i data-lucide="vote" class="w-4 h-4"></i>
+              放課後投票へ進む
+            </button>
+          </div>
+
+          <div id="teams-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: COMMERCIAL DISTRICT MAP (久留米実在地理マップ) -->
+    <div id="tab-map" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between mb-4 gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-black rounded-md">久留米実在エリア重ね合わせ[cite: 2]</span>
+              <h2 class="text-base font-extrabold text-slate-800">久留米商圏マップ＆生徒・住民の人流動線</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">西鉄久留米駅・六ツ門商店街・久留米高校前・南久留米の4つの実在エリアと各班の立地分布です[cite: 2]。</p>
+          </div>
+          <div class="flex gap-2">
+            <span class="inline-flex items-center text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-bold">
+              <i data-lucide="navigation" class="w-3.5 h-3.5 mr-1 text-blue-600"></i> 主動線: 国道209号 ⇄ 明治通り ⇄ 西鉄久留米[cite: 2]
+            </span>
+          </div>
+        </div>
+
+        <div class="relative w-full h-[580px] rounded-2xl border-2 border-slate-300 overflow-hidden kurume-map-bg shadow-inner">
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="680" y1="0" x2="520" y2="580" stroke="#f43f5e" stroke-width="3" stroke-dasharray="6,4" opacity="0.6"/>
+            <line x1="120" y1="460" x2="880" y2="340" stroke="#64748b" stroke-width="3" stroke-dasharray="8,4" opacity="0.6"/>
+            <path d="M 460 480 Q 480 320, 480 140 L 660 130" fill="transparent" stroke="#3b82f6" stroke-width="5" opacity="0.35"/>
+            <text x="440" y="320" fill="#64748b" font-size="10" font-weight="bold">国道209号</text>
+            <text x="560" y="115" fill="#64748b" font-size="10" font-weight="bold">明治通り</text>
+            <text x="690" y="40" fill="#f43f5e" font-size="10" font-weight="bold">西鉄天神大牟田線</text>
+            <text x="730" y="335" fill="#475569" font-size="10" font-weight="bold">JR久大本線</text>
+          </svg>
+
+          <div class="absolute top-10 left-[480px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">
+            🏛️ 久留米シティプラザ[cite: 2]
+          </div>
+          <div class="absolute top-[280px] left-[320px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">
+            🏥 聖マリア病院[cite: 2]
+          </div>
+          <div class="absolute bottom-20 left-[260px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">
+            🌳 津福公園[cite: 2]
+          </div>
+
+          <div class="absolute top-5 left-10 w-72 bg-emerald-50/95 border-2 border-rose-500 rounded-3xl p-3.5 shadow-md backdrop-blur-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-rose-700 flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                商店街エリア（六ツ門・一番街）[cite: 2]
+              </span>
+              <span class="text-[9px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded-full font-bold">家賃: ¥75,000</span>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-1">シティプラザ沿い。カフェや放課後のおしゃべり、散策生徒が集まる[cite: 2]。</p>
+            <div id="map-zone-arcade" class="mt-2.5 space-y-1.5 overflow-y-auto max-h-24 pr-1"></div>
+          </div>
+
+          <div class="absolute top-5 right-10 w-72 bg-blue-50/95 border-2 border-rose-500 rounded-3xl p-3.5 shadow-md backdrop-blur-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-rose-700 flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                駅前・オフィスエリア（西鉄久留米）[cite: 2]
+              </span>
+              <span class="text-[9px] bg-blue-200 text-blue-900 px-1.5 py-0.5 rounded-full font-bold">家賃: ¥100,000</span>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-1">バスセンター接続の最大人流。通勤客・塾通い・電車の乗り換え客が集中。</p>
+            <div id="map-zone-station" class="mt-2.5 space-y-1.5 overflow-y-auto max-h-24 pr-1"></div>
+          </div>
+
+          <div class="absolute bottom-6 right-10 w-72 bg-purple-50/95 border-2 border-rose-500 rounded-3xl p-3.5 shadow-md backdrop-blur-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-rose-700 flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                住宅エリア（南久留米駅周辺）[cite: 2]
+              </span>
+              <span class="text-[9px] bg-purple-200 text-purple-900 px-1.5 py-0.5 rounded-full font-bold">家賃: ¥40,000</span>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-1">久大本線沿いの落ち着いた居住区。家賃最安。自習・固定ファン・ファミリー向き[cite: 2]。</p>
+            <div id="map-zone-residential" class="mt-2.5 space-y-1.5 overflow-y-auto max-h-24 pr-1"></div>
+          </div>
+
+          <div class="absolute bottom-6 left-28 w-80 bg-amber-50/95 border-2 border-rose-500 rounded-3xl p-3.5 shadow-md backdrop-blur-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-rose-700 flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                学校エリア（久留米高校前周辺）[cite: 2]
+              </span>
+              <span class="text-[9px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-full font-bold">家賃: ¥60,000</span>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-1">高校周辺・通学路の直撃立地。放課後に運動部や下校生徒が密集して買い食いする[cite: 2]。</p>
+            <div id="map-zone-gate" class="mt-2.5 space-y-1.5 overflow-y-auto max-h-24 pr-1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: AFTER-SCHOOL VOTING (旧TAB 4) -->
+    <div id="tab-voting" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-orange-100 text-orange-700">STEP 1</span>
+              <h2 class="text-base sm:text-lg font-black text-slate-800">今日のペルソナ（なりきる人物）を選択</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">あなたが持っている紙のペルソナカードの立場になって、お店を選んでください！</p>
+          </div>
+
+          <div class="flex items-center gap-2 bg-amber-50 p-1.5 rounded-xl border border-amber-200">
+            <button onclick="simulateBatchVotes(35)" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-lg text-xs font-black transition flex items-center gap-1 shadow-xs">
+              <i data-lucide="dice-5" class="w-3.5 h-3.5"></i>
+              クラス1クラス分(35票)模擬投票
+            </button>
+            <button onclick="resetVotesOnly()" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition">
+              投票リセット
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5" id="voting-persona-buttons"></div>
+      </div>
+
+      <!-- イベント発動時の生徒用アラートバナー -->
+      <div id="voting-event-alert" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">⚡</span>
+          <div>
+            <div class="text-[10px] font-bold text-amber-100 uppercase tracking-widest">市場イベント発動中</div>
+            <div id="voting-event-title" class="font-black text-sm">期末テスト期間</div>
+            <div id="voting-event-desc" class="text-xs text-amber-50">自習・静寂を求める客層が激増しています！</div>
+          </div>
+        </div>
+        <button onclick="switchTab('tab-simulation')" class="px-3 py-1.5 bg-white text-orange-600 rounded-xl text-xs font-black shadow hover:bg-orange-50 transition">
+          損益への影響を見る
+        </button>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-700">STEP 2</span>
+              <h2 class="text-base sm:text-lg font-black text-slate-800">放課後、今日行くお店を選択！</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">主力商品やサブメニューを見比べて「ここに行きたい！」と思うお店を選んでください。</p>
+          </div>
+          <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+            総投票数: <strong id="voting-total-count" class="text-orange-600 font-black">0</strong> 票
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="voting-stores-grid"></div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-5 shadow-sm border border-indigo-100 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-indigo-600 text-white">STEP 3</span>
+              <h2 class="text-base sm:text-lg font-black text-slate-800">選んだ理由（購買動機）を入力して投票を確定！</h2>
+            </div>
+            <p class="text-xs text-slate-600 mt-0.5">あなたのペルソナがなぜその店を選んだのか、価格・変動費やメニューの視点で教えてください。</p>
+          </div>
+          <div id="voting-selected-store-preview" class="text-xs font-bold text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-indigo-200">
+            選択中の店舗: <span class="text-indigo-600 font-black">（STEP 2で選択してください）</span>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1.5">クイック選択（クリックで理由に追加）:</label>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="appendReasonTag('ボリューム満点で満腹になりそう！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+                🍖 ボリューム満点
+              </button>
+              <button type="button" onclick="appendReasonTag('価格が安くて小遣いの予算内に収まる！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+                💰 圧倒的コスパ
+              </button>
+              <button type="button" onclick="appendReasonTag('写真映え・パッケージが可愛くてSNSに載せたい！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+                📸 映え・可愛い
+              </button>
+              <button type="button" onclick="appendReasonTag('静かでWi-Fiや電源があって長居・自習できる！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+                📖 静か・Wi-Fi完備
+              </button>
+              <button type="button" onclick="appendReasonTag('学校近くやすぐ寄れる立地が最高！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+                📍 近くて便利
+              </button>
+              <button type="button" onclick="appendReasonTag('サイドメニューやドリンクのついで買いが魅力的！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+                🥤 サブメニュー充実
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">自由記述（ペルソナの生の声）:</label>
+            <textarea id="voting-reason-input" rows="2" placeholder="例: 西鉄久留米駅で電車に乗る前にすぐ買えるのが最高！ポテトとセットにしても予算内で助かる！" class="w-full px-3 py-2 rounded-xl border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs bg-white"></textarea>
+          </div>
+
+          <div class="flex justify-end">
+            <button id="btn-submit-vote-final" onclick="submitFinalVoteWithReason()" class="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition flex items-center gap-2">
+              <i data-lucide="send" class="w-4 h-4"></i>
+              理由を送信して投票を確定！
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SIMULATION & EVENT IMPACT ANALYSIS (旧TAB 5) -->
+    <div id="tab-simulation" class="tab-content hidden space-y-6">
+      <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-md flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-black text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+            <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
+            営業利益コンテスト結果＆損益分析
+          </span>
+          <h2 class="text-xl font-black mt-1">店舗別・営業利益ランキング & イベント要因分析</h2>
+          <p class="text-xs text-slate-300 mt-1">売上高（客数×実効単価）－ 変動費 － 固定費（家賃・人件費等）＝ 営業利益で順位を決定。</p>
+        </div>
+        <button onclick="updateDashboard()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black px-5 py-2.5 rounded-xl text-xs transition shadow-lg flex items-center gap-2">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          再集計・グラフ更新
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="sim-kpi-cards"></div>
+
+      <!-- 要因分析ダッシュボード -->
+      <div class="bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-indigo-700/50">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-indigo-800/80 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-400 text-slate-950">要因分析ドリルダウン</span>
+              <h3 class="text-base font-extrabold text-white flex items-center gap-1.5">
+                <i data-lucide="split" class="w-4 h-4 text-amber-400"></i>
+                突発イベントによる収益・費用・利益の変動分析
+              </h3>
+            </div>
+            <p class="text-xs text-indigo-200 mt-0.5">イベント発生によって、通常時と比べて売上・変動費・固定費がどう変化したのかを店舗別に検証します。</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-indigo-300">分析する店舗:</span>
+            <select id="analysis-store-select" onchange="renderEventImpactAnalysis()" class="px-3 py-1.5 rounded-xl bg-slate-800 text-amber-300 border border-indigo-500 font-bold text-xs focus:ring-2 focus:ring-amber-400">
+            </select>
+          </div>
+        </div>
+
+        <div id="event-analysis-content" class="grid grid-cols-1 md:grid-cols-4 gap-4"></div>
+      </div>
+
+      <!-- P/L Table -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between mb-3 gap-2">
+          <h3 class="font-extrabold text-sm sm:text-base text-slate-800 flex items-center gap-2">
+            <i data-lucide="calculator" class="w-4 h-4 text-indigo-600"></i>
+            各班の損益計算書（P/L）詳細（営業利益順）
+          </h3>
+          <span class="text-[10px] text-indigo-700 font-bold bg-indigo-50 px-2.5 py-1 rounded-lg">
+            ※営業利益 ＝ 売上高 － 変動費合計 － 固定費合計
+          </span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-600 font-extrabold uppercase">
+                <th class="py-3 px-3 rounded-l-xl">順位</th>
+                <th class="py-3 px-3">店舗名 / チーム</th>
+                <th class="py-3 px-3">立地</th>
+                <th class="py-3 px-3 text-right">月間客数</th>
+                <th class="py-3 px-3 text-right">実効客単価</th>
+                <th class="py-3 px-3 text-right">【月商(売上)】</th>
+                <th class="py-3 px-3 text-right text-rose-600">変動費合計</th>
+                <th class="py-3 px-3 text-right text-indigo-600">限界利益</th>
+                <th class="py-3 px-3 text-right text-slate-500">固定費合計</th>
+                <th class="py-3 px-3 text-right rounded-r-xl font-black">【営業利益】</th>
+              </tr>
+            </thead>
+            <tbody id="sim-financials-tbody" class="divide-y divide-slate-100 font-medium"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-600"></i>
+              市場占有率（客数シェア %）
+            </h3>
+            <span class="text-[10px] text-slate-400 font-bold">得票率按分</span>
+          </div>
+          <div class="relative flex-1 min-h-[260px] flex items-center justify-center">
+            <canvas id="chart-market-share"></canvas>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-600"></i>
+              売上高・固定費・営業利益の比較（円）
+            </h3>
+            <span class="text-[10px] text-slate-400 font-bold">月20営業日計算</span>
+          </div>
+          <div class="relative flex-1 min-h-[260px] flex items-center justify-center">
+            <canvas id="chart-financials"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-extrabold text-sm sm:text-base text-slate-800 flex items-center gap-2">
+            <i data-lucide="message-square" class="w-4 h-4 text-rose-500"></i>
+            ペルソナからのリアルな口コミ（VOC・投票で寄せられた理由）
+          </h3>
+          <span class="text-[10px] text-slate-400">※STEP 3で入力された投票理由が最新順に表示されます</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="sim-feedback-grid"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ============================================== -->
+  <!-- 🔐 管理者・教員専用 パスワード認証モーダル     -->
+  <!-- ============================================== -->
+  <div id="admin-auth-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 text-center">
+      <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto text-amber-700 text-2xl mb-3">
+        🔐
+      </div>
+      <h3 class="text-base font-black text-slate-900">教員・管理者 ログイン</h3>
+      <p class="text-xs text-slate-500 mt-1">突発イベントのカスタム設定や対象店舗を管理するためのパスワードを入力してください。</p>
+      
+      <div class="my-4">
+        <input type="password" id="admin-pass-input" placeholder="パスワードを入力" class="w-full text-center px-4 py-2.5 rounded-xl border border-slate-200 font-mono text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+        <p class="text-[10px] text-slate-400 mt-1">※初期パスワード: <span class="font-mono font-bold text-slate-600">teacher2026</span></p>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="closeAdminAuthModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">
+          キャンセル
+        </button>
+        <button onclick="verifyAdminPassword()" class="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black transition">
+          入室する
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- ⚙️ 管理者専用コンソール（イベント＆対象店舗管理） -->
+  <!-- ============================================== -->
+  <div id="admin-console-modal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></span>
+          <h3 class="text-base font-black text-amber-300">教員用 イベント・市場コントロールパネル</h3>
+        </div>
+        <button onclick="closeAdminConsoleModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto custom-scrollbar space-y-6 text-xs">
+        
+        <!-- 現在のステータス -->
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-black uppercase text-amber-800">現在の発動状況</span>
+            <div id="admin-current-event-text" class="text-sm font-black text-slate-800 mt-0.5">平常運転（イベント未発動）</div>
+          </div>
+          <button onclick="adminResetEvent()" class="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold transition">
+            イベント即時解除
+          </button>
+        </div>
+
+        <!-- プリセットイベントのワンクリック選択 -->
+        <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-2">
+          <label class="block font-extrabold text-slate-800 text-xs">プリセットから選んで入力:</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button type="button" onclick="loadPresetToAdminForm('exam')" class="p-2 rounded-xl border border-slate-200 hover:border-amber-400 text-left bg-slate-50">
+              <span class="font-bold block text-slate-800">📝 期末テスト</span>
+              <span class="text-[10px] text-slate-500">自習特化ブースト</span>
+            </button>
+            <button type="button" onclick="loadPresetToAdminForm('rain')" class="p-2 rounded-xl border border-slate-200 hover:border-amber-400 text-left bg-slate-50">
+              <span class="font-bold block text-slate-800">🌧️ ゲリラ豪雨</span>
+              <span class="text-[10px] text-slate-500">駅前・学校前有利</span>
+            </button>
+            <button type="button" onclick="loadPresetToAdminForm('buzz')" class="p-2 rounded-xl border border-slate-200 hover:border-amber-400 text-left bg-slate-50">
+              <span class="font-bold block text-slate-800">📱 SNS大バズり</span>
+              <span class="text-[10px] text-slate-500">映えカフェ特大ブースト</span>
+            </button>
+            <button type="button" onclick="loadPresetToAdminForm('cost_up')" class="p-2 rounded-xl border border-slate-200 hover:border-amber-400 text-left bg-slate-50">
+              <span class="font-bold block text-slate-800">📉 原材料25%高騰</span>
+              <span class="text-[10px] text-slate-500">変動費急増ショック</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- カスタムイベント作成フォーム -->
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+          <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+            <span class="text-base">⚡</span>
+            <h4 class="font-extrabold text-slate-800 text-sm">突発イベントの作成・カスタマイズ＆適用</h4>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div class="sm:col-span-1">
+              <label class="block font-bold text-slate-600 mb-1">アイコン (絵文字)</label>
+              <input type="text" id="admin-evt-icon" value="⚡" class="w-full px-3 py-2 text-center text-lg rounded-xl border border-slate-200 bg-white">
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block font-bold text-slate-600 mb-1">イベント名 / ニュース見出し</label>
+              <input type="text" id="admin-evt-title" placeholder="例: 西鉄久留米駅で大型物産展が突如開催！" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold bg-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">イベントの説明 / 状況</label>
+            <textarea id="admin-evt-desc" rows="2" placeholder="例: 駅周辺に数千人の人流が集中。駅前エリアの店舗は大混雑となり、他のエリアは閑散。" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"></textarea>
+          </div>
+
+          <!-- パラメータ変動設定 -->
+          <div class="grid grid-cols-2 gap-3 p-3 bg-white rounded-xl border border-slate-200">
+            <div>
+              <label class="block font-bold text-slate-700 mb-0.5">客数ブースト倍率 (売上影響)</label>
+              <input type="number" id="admin-evt-boost" value="2.0" step="0.1" min="0.1" max="5.0" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-mono font-bold">
+              <p class="text-[10px] text-slate-400 mt-0.5">※1.0=通常、2.0=客数2倍、0.5=客数半減</p>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-0.5">原材料・変動費倍率 (原価影響)</label>
+              <input type="number" id="admin-evt-costmult" value="1.0" step="0.05" min="0.5" max="3.0" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-mono font-bold text-rose-600">
+              <p class="text-[10px] text-slate-400 mt-0.5">※1.0=通常、1.25=変動費25%高騰</p>
+            </div>
+          </div>
+
+          <!-- 影響を与える対象店舗の指定 -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                <i data-lucide="crosshair" class="w-3.5 h-3.5 text-rose-500"></i>
+                影響を与える対象店舗・エリアの指定
+              </label>
+              <span class="text-[10px] text-slate-400">※複数指定・個別指名が可能</span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+              <button type="button" onclick="selectTargetPreset('all')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white">
+                全店舗一括
+              </button>
+              <button type="button" onclick="selectTargetPreset('station')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white">
+                西鉄久留米駅前のみ
+              </button>
+              <button type="button" onclick="selectTargetPreset('arcade')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white">
+                商店街のみ
+              </button>
+              <button type="button" onclick="selectTargetPreset('gate')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white">
+                学校前のみ
+              </button>
+            </div>
+
+            <div id="admin-target-stores-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto custom-scrollbar p-2 bg-white rounded-xl border border-slate-200">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">生徒への戦略アドバイス（ヒント）</label>
+            <input type="text" id="admin-evt-advice" placeholder="例: 変動費が高騰した店舗は、サイドメニューの値上げや高単価化を急ぎましょう。" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+          </div>
+
+          <button onclick="adminApplyCustomEvent()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            この設定でイベントを市場に即時発動！
+          </button>
+        </div>
+
+        <!-- パスワード変更 -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-between text-slate-500 text-[11px]">
+          <span>管理者パスワード設定:</span>
+          <div class="flex gap-2">
+            <input type="password" id="admin-new-pass" placeholder="新しいパスワード" class="px-2 py-1 rounded border border-slate-200 text-xs font-mono">
+            <button onclick="changeAdminPassword()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded font-bold">更新</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2 transform translate-y-20 opacity-0 transition duration-300 pointer-events-none z-50">
+    <span id="toast-icon">✨</span>
+    <span id="toast-msg">完了しました</span>
+  </div>
+
+  <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-700">MarketPBL 久留米エディション v5.3</span>
+        <span>|</span>
+        <span>教員専用管理者コントロール＆営業利益競争システム</span>
+      </div>
+      <div class="text-[11px] text-slate-400">
+        久留米商圏PBL演習
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // --- 1. Master Data Definitions ---
+    const rentMap = {
+      gate: 60000,
+      station: 100000,
+      arcade: 75000,
+      residential: 40000
+    };
+
+    const defaultSampleStores = [
+      {
+        id: 'store_1',
+        teamName: '1班 (男子運動部)',
+        storeName: '爆盛からあげ天国 ましまし亭',
+        icon: '🍗',
+        category: 'snack',
+        productName: 'メガ盛りから揚げ丼（特製マヨ付き）',
+        quality: 'budget',
+        vibe: 'chill',
+        price: 450,
+        unitVariableCost: 170,
+        location: 'gate',
+        fixedRent: 60000,
+        fixedLabor: 40000,
+        fixedUtilities: 20000,
+        promo: 'school_flyer',
+        targetPersona: 'sports',
+        votes: 14,
+        reasons: ['部活終わりに久留米高校前で即買える！ボリュームがすごい！', '下校中の買い食いに安くて最高！'],
+        subProducts: [
+          { name: '山盛りフライドポテト', price: 180, unitVariableCost: 45 },
+          { name: '部活応援メガ烏龍茶', price: 120, unitVariableCost: 20 },
+          { name: 'マヨだくチーズトッピング', price: 80, unitVariableCost: 25 }
+        ]
+      },
+      {
+        id: 'store_2',
+        teamName: '2班 (トレンド企画部)',
+        storeName: 'Chill & Sweets アオハルスタンド',
+        icon: '🍓',
+        category: 'cafe',
+        productName: 'いちご生クリームもちもちクレープ',
+        quality: 'premium',
+        vibe: 'aesthetic',
+        price: 580,
+        unitVariableCost: 185,
+        location: 'arcade',
+        fixedRent: 75000,
+        fixedLabor: 50000,
+        fixedUtilities: 25000,
+        promo: 'sns_reels',
+        targetPersona: 'trend',
+        votes: 16,
+        reasons: ['六ツ門・シティプラザ近くで友達と写真撮りながら喋るのに最高！', 'クレープとソーダの組み合わせが映えすぎる。'],
+        subProducts: [
+          { name: 'グラデーションフルーツソーダ', price: 380, unitVariableCost: 75 },
+          { name: '推し色くまさんマカロン', price: 250, unitVariableCost: 70 }
+        ]
+      },
+      {
+        id: 'store_3',
+        teamName: '3班 (特進サポート隊)',
+        storeName: '自習＆フリードリンク Focus CAFE',
+        icon: '📚',
+        category: 'study',
+        productName: '全席電源完備・静寂ブース＆珈琲バー',
+        quality: 'standard',
+        vibe: 'quiet',
+        price: 400,
+        unitVariableCost: 80,
+        location: 'residential',
+        fixedRent: 40000,
+        fixedLabor: 30000,
+        fixedUtilities: 25000,
+        promo: 'word_of_mouth',
+        targetPersona: 'study',
+        votes: 9,
+        reasons: ['南久留米の住宅街にあって静か。Wi-Fiと電源完備でテスト勉強に籠もれる。', 'おかわりドリンクもあって集中できる。'],
+        subProducts: [
+          { name: '集中持続ブドウ糖スナック', price: 150, unitVariableCost: 45 },
+          { name: '自家製ドリップおかわりチケット', price: 200, unitVariableCost: 35 }
+        ]
+      },
+      {
+        id: 'store_4',
+        teamName: '4班 (駅前ベンチャー)',
+        storeName: '西鉄久留米駅前 STAND 5',
+        icon: '🍙',
+        category: 'convenience',
+        productName: '焼きたてパリパリおにぎり',
+        quality: 'budget',
+        vibe: 'speed',
+        price: 150,
+        unitVariableCost: 60,
+        location: 'station',
+        fixedRent: 100000,
+        fixedLabor: 55000,
+        fixedUtilities: 20000,
+        promo: 'coupon',
+        targetPersona: 'cost',
+        votes: 11,
+        reasons: ['西鉄久留米駅で電車やバスを待つ間に100円台でサクッと買える！', '安くてお小遣いピンチでも助かる。'],
+        subProducts: [
+          { name: 'ジューシーからあげ棒', price: 130, unitVariableCost: 45 },
+          { name: '熱々お味噌汁カップ', price: 100, unitVariableCost: 20 },
+          { name: '緑茶ペットボトル', price: 110, unitVariableCost: 35 }
+        ]
+      }
+    ];
+
+    const personasMaster = [
+      { id: 'sports', name: '① 腹ペコ部活生', personName: '佐藤 陸 (高2・運動部)', icon: '⚽', budget: '350円〜500円' },
+      { id: 'trend', name: '② トレンド女子', personName: '高橋 結菜 (高2・文化部/帰宅部)', icon: '🧋', budget: '600円〜900円' },
+      { id: 'study', name: '③ 勉強・作業派', personName: '渡辺 蓮 (高3・進学希望/テスト前)', icon: '📖', budget: '400円〜600円' },
+      { id: 'cost', name: '④ コスパ節約派', personName: '田中 葵 (高1・お小遣い月3,000円)', icon: '👛', budget: '150円〜300円' },
+      { id: 'commuter', name: '⑤ 駅通勤者', personName: '木村 恵美 (30代・西鉄久留米利用の会社員)', icon: '💼', budget: '700円〜1,200円' },
+      { id: 'family', name: '⑥ 近隣ファミリー', personName: '山本 友香 (40代・小学生連れ)', icon: '👨‍👩‍👧', budget: '1,000円〜1,500円' }
+    ];
+
+    const marketEventsMaster = [
+      {
+        id: 'exam',
+        title: '期末テスト1週間前突入！',
+        icon: '📝',
+        desc: '部活動停止で自習・作業需要が急増！運動部の買い食いは減少。',
+        boostPersona: 'study',
+        boostRate: 2.3,
+        costMultiplier: 1.0,
+        targetScope: 'persona',
+        targetPersona: 'study',
+        advice: '静寂環境・Wi-Fi完備の店舗に客が集中します。'
+      },
+      {
+        id: 'rain',
+        title: 'ゲリラ豪雨・長雨警報発令！',
+        icon: '🌧️',
+        desc: '大雨のため移動困難！学校エリアと西鉄久留米駅前の至近店舗に客が集中。',
+        boostLocations: ['gate', 'station'],
+        boostRate: 1.85,
+        costMultiplier: 1.0,
+        targetScope: 'location',
+        targetLocations: ['gate', 'station'],
+        advice: '至近立地が圧倒的有利。遠方の商店街や住宅街は集客対策が必要。'
+      },
+      {
+        id: 'buzz',
+        title: '久留米の高校生リールで大バズ！',
+        icon: '📱',
+        desc: 'TikTok・リール動画で話題沸騰！映え系スイーツ・トレンド店舗に長蛇の列！',
+        boostPersona: 'trend',
+        boostRate: 2.6,
+        costMultiplier: 1.0,
+        targetScope: 'persona',
+        targetPersona: 'trend',
+        advice: 'SNS販促とビジュアル重視の店舗の売上が爆発します。'
+      },
+      {
+        id: 'cost_up',
+        title: '原材料・包材費 25%高騰！',
+        icon: '📉',
+        desc: '仕入材料費が25%急騰！全店舗の限界利益を直撃！',
+        boostRate: 1.0,
+        costMultiplier: 1.25,
+        targetScope: 'all',
+        advice: '変動費の高い店舗は利益が激減します。客単価UPや付加価値ピボットが急務。'
+      }
+    ];
+
+    // --- 2. State Variables ---
+    let stores = [];
+    let selectedPersona = 'sports';
+    let selectedStoreForVote = null;
+    let currentEvent = null;
+    let adminPassword = localStorage.getItem('market_admin_pass') || 'teacher2026';
+    let chartMarketShareInstance = null;
+    let chartFinancialsInstance = null;
+
+    // --- 3. App Initialization ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStorage();
+      renderTeamsList();
+      renderMapPins();
+      renderVotingPersonaButtons();
+      renderVotingStores();
+      updateDashboard();
+      lucide.createIcons();
+    });
+
+    function loadStorage() {
+      const saved = localStorage.getItem('market_sim_stores_v5');
+      if (saved) {
+        try {
+          stores = JSON.parse(saved);
+        } catch (e) {
+          stores = JSON.parse(JSON.stringify(defaultSampleStores));
+        }
+      } else {
+        stores = JSON.parse(JSON.stringify(defaultSampleStores));
+      }
+    }
+
+    function saveStorage() {
+      localStorage.setItem('market_sim_stores_v5', JSON.stringify(stores));
+    }
+
+    function toggleCustomField(selectId, inputId) {
+      const select = document.getElementById(selectId);
+      const input = document.getElementById(inputId);
+      if (select.value === '__custom__') {
+        input.classList.remove('hidden');
+        input.focus();
+      } else {
+        input.classList.add('hidden');
+      }
+    }
+
+    function syncLocationRent() {
+      const loc = document.getElementById('place-location').value;
+      document.getElementById('fc-rent').value = rentMap[loc] || 60000;
+    }
+
+    function calcMarginPreview() {
+      const p = parseInt(document.getElementById('price-point').value, 10) || 0;
+      const v = parseInt(document.getElementById('unit-variable-cost').value, 10) || 0;
+      const margin = p - v;
+      const ratio = p > 0 ? Math.round((margin / p) * 100) : 0;
+      document.getElementById('main-margin-badge').textContent = `限界利益: ¥${margin.toLocaleString()} (${ratio}%)`;
+    }
+
+    // --- Sub-Products Management in Form ---
+    const subproductsContainer = document.getElementById('subproducts-container');
+    document.getElementById('btn-add-subproduct').addEventListener('click', () => {
+      addSubProductRow();
+    });
+
+    function addSubProductRow(name = '', price = 150, unitVariableCost = 50) {
+      const row = document.createElement('div');
+      row.className = 'subproduct-item flex items-center gap-1.5 bg-white p-1.5 rounded-lg border border-indigo-100 shadow-2xs';
+      row.innerHTML = `
+        <input type="text" placeholder="商品名 (例: ポテト)" value="${name}" class="sub-name flex-1 px-2 py-1 rounded border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500" required>
+        <div class="flex items-center gap-0.5">
+          <span class="text-[9px] text-slate-400">¥</span>
+          <input type="number" placeholder="価格" value="${price}" min="50" max="2000" step="10" class="sub-price w-16 px-1.5 py-1 rounded border border-slate-200 text-xs font-mono font-bold" required title="販売価格(円)">
+        </div>
+        <div class="flex items-center gap-0.5">
+          <input type="number" placeholder="変動費" value="${unitVariableCost}" min="5" max="1500" step="5" class="sub-var-cost w-14 px-1 py-1 rounded border border-slate-200 text-xs font-mono text-rose-600 font-bold" required title="1個あたり変動費(円)">
+          <span class="text-[9px] text-slate-400">変</span>
+        </div>
+        <button type="button" class="btn-remove-sub p-1 text-slate-300 hover:text-rose-500 transition rounded" title="削除">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      `;
+      row.querySelector('.btn-remove-sub').addEventListener('click', () => {
+        row.remove();
+      });
+      subproductsContainer.appendChild(row);
+      lucide.createIcons();
+    }
+
+    function getSubProductsFromForm() {
+      const rows = subproductsContainer.querySelectorAll('.subproduct-item');
+      const items = [];
+      rows.forEach(r => {
+        const name = r.querySelector('.sub-name').value.trim();
+        const price = parseInt(r.querySelector('.sub-price').value, 10) || 100;
+        const unitVariableCost = parseInt(r.querySelector('.sub-var-cost').value, 10) || 30;
+        if (name) {
+          items.push({ name, price, unitVariableCost });
+        }
+      });
+      return items;
+    }
+
+    function populateSubProductsToForm(items = []) {
+      subproductsContainer.innerHTML = '';
+      items.forEach(item => {
+        addSubProductRow(item.name, item.price, item.unitVariableCost || Math.round(item.price * 0.35));
+      });
+    }
+
+    // --- 4. Cross-sell and Effective Metrics Helper ---
+    function calculateEffectiveStoreMetrics(store, costMultiplier = 1.0) {
+      const CROSS_SELL_RATE = 0.35;
+      
+      let effectivePrice = store.price;
+      let effectiveVarCost = (store.unitVariableCost || Math.round(store.price * 0.35)) * costMultiplier;
+
+      if (store.subProducts && store.subProducts.length > 0) {
+        const avgSubPrice = store.subProducts.reduce((sum, sp) => sum + sp.price, 0) / store.subProducts.length;
+        const avgSubVarCost = (store.subProducts.reduce((sum, sp) => sum + (sp.unitVariableCost || Math.round(sp.price * 0.35)), 0) / store.subProducts.length) * costMultiplier;
+        
+        effectivePrice += Math.round(avgSubPrice * CROSS_SELL_RATE);
+        effectiveVarCost += Math.round(avgSubVarCost * CROSS_SELL_RATE);
+      }
+
+      const unitContributionMargin = effectivePrice - effectiveVarCost;
+      const totalFixedCost = (store.fixedRent || rentMap[store.location] || 60000) + 
+                             (store.fixedLabor || 40000) + 
+                             (store.fixedUtilities || 20000);
+
+      return {
+        effectivePrice,
+        effectiveVarCost,
+        unitContributionMargin,
+        totalFixedCost
+      };
+    }
+
+    // --- 5. Tab Navigation ---
+    function switchTab(targetTabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+
+      const activeSection = document.getElementById(targetTabId);
+      if (activeSection) activeSection.classList.remove('hidden');
+
+      const activeBtn = document.querySelector(`[data-tab="${targetTabId}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-600');
+      }
+
+      if (targetTabId === 'tab-simulation') {
+        updateDashboard();
+      } else if (targetTabId === 'tab-voting') {
+        renderVotingStores();
+      } else if (targetTabId === 'tab-map') {
+        renderMapPins();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      lucide.createIcons();
+    }
+
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-tab');
+        switchTab(tabId);
+      });
+    });
+
+    // --- 6. TAB 1: 4P Store CRUD Operations ---
+    function renderTeamsList() {
+      const container = document.getElementById('teams-container');
+      const badge = document.getElementById('team-badge-count');
+      badge.textContent = stores.length;
+
+      const placeLabels = {
+        gate: '学校エリア（久留米高校前周辺）',
+        station: '駅前・オフィスエリア（西鉄久留米）',
+        arcade: '商店街エリア（六ツ門・一番街）',
+        residential: '住宅エリア（南久留米）'
+      };
+
+      if (stores.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center text-slate-400">
+            <i data-lucide="store" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+            <p class="font-bold text-sm">登録店舗がありません</p>
+            <p class="text-xs mt-1">左のフォームから入力するか「サンプル4店舗読込」を押してください。</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = stores.map(store => {
+        const metrics = calculateEffectiveStoreMetrics(store);
+        const subCount = store.subProducts ? store.subProducts.length : 0;
+
+        return `
+          <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 hover:shadow-md transition relative flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                  ${store.teamName}
+                </span>
+                <div class="flex items-center gap-1">
+                  <button onclick="editStore('${store.id}')" class="p-1 text-slate-400 hover:text-indigo-600 rounded">
+                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button onclick="deleteStore('${store.id}')" class="p-1 text-slate-400 hover:text-rose-600 rounded">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">${store.icon || '🏪'}</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm leading-tight">${store.storeName}</h3>
+                  <p class="text-[11px] text-slate-500 line-clamp-1">★主力: ${store.productName}</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-1 bg-slate-50 p-2 rounded-xl text-[10px] text-slate-600 mb-2 border border-slate-100">
+                <div><span class="text-slate-400 block">主力価格</span><strong>¥${store.price}</strong></div>
+                <div><span class="text-rose-500 block">変動費/個</span><strong class="text-rose-600">¥${store.unitVariableCost}</strong></div>
+                <div><span class="text-indigo-500 block">月額固定費</span><strong class="text-indigo-700">¥${metrics.totalFixedCost.toLocaleString()}</strong></div>
+              </div>
+
+              ${subCount > 0 ? `
+                <div class="mb-2">
+                  <div class="flex flex-wrap gap-1">
+                    ${store.subProducts.map(sp => `
+                      <span class="text-[9px] bg-indigo-50 text-indigo-700 font-medium px-1.5 py-0.5 rounded border border-indigo-100/60 truncate max-w-[120px]">
+                        + ${sp.name} (¥${sp.price}/変¥${sp.unitVariableCost})
+                      </span>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : `
+                <div class="mb-2 text-[10px] text-slate-400 italic">追加サブメニューなし</div>
+              `}
+
+              <div class="text-[11px] text-slate-500 space-y-0.5">
+                <div><span class="text-slate-400">立地:</span> <strong>${placeLabels[store.location] || store.location}</strong></div>
+                <div><span class="text-slate-400">得票数:</span> <strong class="text-orange-600 font-black">${store.votes || 0} 票</strong></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    document.getElementById('store-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('edit-team-id').value;
+
+      const subProducts = getSubProductsFromForm();
+
+      const vibeSelect = document.getElementById('prod-vibe').value;
+      const vibeCustom = document.getElementById('prod-vibe-custom').value.trim();
+      const finalVibe = vibeSelect === '__custom__' ? (vibeCustom || 'その他') : vibeSelect;
+
+      const promoSelect = document.getElementById('promo-channel').value;
+      const promoCustom = document.getElementById('promo-channel-custom').value.trim();
+      const finalPromo = promoSelect === '__custom__' ? (promoCustom || 'その他') : promoSelect;
+
+      const personaSelect = document.getElementById('target-persona').value;
+      const personaCustom = document.getElementById('target-persona-custom').value.trim();
+      const finalPersona = personaSelect === '__custom__' ? (personaCustom || 'その他') : personaSelect;
+
+      const storeData = {
+        id: editId || 'store_' + Date.now(),
+        teamName: document.getElementById('team-name').value.trim(),
+        storeName: document.getElementById('store-name').value.trim(),
+        icon: document.getElementById('store-icon').value.trim() || '🏪',
+        category: document.getElementById('store-category').value,
+        productName: document.getElementById('prod-name').value.trim(),
+        quality: document.getElementById('prod-quality').value,
+        vibe: finalVibe,
+        price: parseInt(document.getElementById('price-point').value, 10) || 500,
+        unitVariableCost: parseInt(document.getElementById('unit-variable-cost').value, 10) || 150,
+        location: document.getElementById('place-location').value,
+        fixedRent: parseInt(document.getElementById('fc-rent').value, 10) || 60000,
+        fixedLabor: parseInt(document.getElementById('fc-labor').value, 10) || 40000,
+        fixedUtilities: parseInt(document.getElementById('fc-utilities').value, 10) || 20000,
+        promo: finalPromo,
+        targetPersona: finalPersona,
+        votes: 0,
+        reasons: [],
+        subProducts: subProducts
+      };
+
+      if (editId) {
+        const idx = stores.findIndex(s => s.id === editId);
+        if (idx !== -1) {
+          storeData.votes = stores[idx].votes;
+          storeData.reasons = stores[idx].reasons || [];
+          stores[idx] = storeData;
+        }
+        cancelEdit();
+        showToast(`「${storeData.storeName}」を更新しました`);
+      } else {
+        stores.push(storeData);
+        showToast(`「${storeData.storeName}」を新規登録しました`);
+      }
+
+      saveStorage();
+      renderTeamsList();
+      renderMapPins();
+      renderVotingStores();
+      updateDashboard();
+    });
+
+    function editStore(id) {
+      const s = stores.find(item => item.id === id);
+      if (!s) return;
+
+      document.getElementById('edit-team-id').value = s.id;
+      document.getElementById('team-name').value = s.teamName;
+      document.getElementById('store-name').value = s.storeName;
+      document.getElementById('store-icon').value = s.icon || '🏪';
+      document.getElementById('store-category').value = s.category || 'snack';
+      document.getElementById('prod-name').value = s.productName;
+      document.getElementById('prod-quality').value = s.quality || 'standard';
+
+      const standardVibes = ['chill', 'aesthetic', 'quiet', 'speed'];
+      const vibeSelect = document.getElementById('prod-vibe');
+      const vibeCustom = document.getElementById('prod-vibe-custom');
+      if (standardVibes.includes(s.vibe)) {
+        vibeSelect.value = s.vibe;
+        vibeCustom.classList.add('hidden');
+        vibeCustom.value = '';
+      } else {
+        vibeSelect.value = '__custom__';
+        vibeCustom.classList.remove('hidden');
+        vibeCustom.value = s.vibe || '';
+      }
+
+      document.getElementById('price-point').value = s.price;
+      document.getElementById('unit-variable-cost').value = s.unitVariableCost || Math.round(s.price * 0.35);
+      document.getElementById('place-location').value = s.location;
+      document.getElementById('fc-rent').value = s.fixedRent || rentMap[s.location] || 60000;
+      document.getElementById('fc-labor').value = s.fixedLabor || 40000;
+      document.getElementById('fc-utilities').value = s.fixedUtilities || 20000;
+
+      const standardPromos = ['sns_reels', 'school_flyer', 'coupon', 'word_of_mouth'];
+      const promoSelect = document.getElementById('promo-channel');
+      const promoCustom = document.getElementById('promo-channel-custom');
+      if (standardPromos.includes(s.promo)) {
+        promoSelect.value = s.promo;
+        promoCustom.classList.add('hidden');
+        promoCustom.value = '';
+      } else {
+        promoSelect.value = '__custom__';
+        promoCustom.classList.remove('hidden');
+        promoCustom.value = s.promo || '';
+      }
+
+      const standardPersonas = ['sports', 'trend', 'study', 'cost', 'commuter', 'family'];
+      const personaSelect = document.getElementById('target-persona');
+      const personaCustom = document.getElementById('target-persona-custom');
+      if (standardPersonas.includes(s.targetPersona)) {
+        personaSelect.value = s.targetPersona;
+        personaCustom.classList.add('hidden');
+        personaCustom.value = '';
+      } else {
+        personaSelect.value = '__custom__';
+        personaCustom.classList.remove('hidden');
+        personaCustom.value = s.targetPersona || '';
+      }
+
+      calcMarginPreview();
+      populateSubProductsToForm(s.subProducts || []);
+
+      document.getElementById('btn-submit-text').textContent = '店舗情報を更新';
+      document.getElementById('btn-cancel-edit').classList.remove('hidden');
+      document.getElementById('editing-indicator').classList.remove('hidden');
+
+      switchTab('tab-teams');
+    }
+
+    function cancelEdit() {
+      document.getElementById('edit-team-id').value = '';
+      document.getElementById('btn-submit-text').textContent = '店舗をマーケットに追加';
+      document.getElementById('btn-cancel-edit').classList.add('hidden');
+      document.getElementById('editing-indicator').classList.add('hidden');
+      document.getElementById('store-form').reset();
+      document.getElementById('prod-vibe-custom').classList.add('hidden');
+      document.getElementById('promo-channel-custom').classList.add('hidden');
+      document.getElementById('target-persona-custom').classList.add('hidden');
+      syncLocationRent();
+      calcMarginPreview();
+      subproductsContainer.innerHTML = '';
+    }
+
+    document.getElementById('btn-cancel-edit').addEventListener('click', cancelEdit);
+
+    function deleteStore(id) {
+      stores = stores.filter(s => s.id !== id);
+      if (selectedStoreForVote === id) {
+        selectedStoreForVote = null;
+        updateSelectedStorePreview();
+      }
+      saveStorage();
+      renderTeamsList();
+      renderMapPins();
+      renderVotingStores();
+      updateDashboard();
+      showToast('店舗を削除しました');
+    }
+
+    // --- 7. TAB 2: Map Rendering ---
+    function renderMapPins() {
+      ['station', 'gate', 'arcade', 'residential'].forEach(zone => {
+        const el = document.getElementById(`map-zone-${zone}`);
+        if (el) el.innerHTML = '';
+      });
+
+      stores.forEach(store => {
+        const zoneEl = document.getElementById(`map-zone-${store.location}`);
+        if (zoneEl) {
+          const metrics = calculateEffectiveStoreMetrics(store);
+          const item = document.createElement('div');
+          item.className = 'bg-white px-2 py-1 rounded-lg shadow-sm border border-slate-300 text-[11px] flex items-center justify-between font-bold text-slate-800';
+          item.innerHTML = `
+            <span class="truncate max-w-[130px] flex items-center gap-1">
+              <span>${store.icon || '🏪'}</span>
+              <span>${store.storeName}</span>
+            </span>
+            <span class="text-[10px] font-mono text-indigo-600 font-bold bg-indigo-50 px-1 py-0.2 rounded">客単価¥${metrics.effectivePrice}</span>
+          `;
+          zoneEl.appendChild(item);
+        }
+      });
+    }
+
+    // --- 8. TAB 3: Voting ---
+    function renderVotingPersonaButtons() {
+      const container = document.getElementById('voting-persona-buttons');
+      container.innerHTML = personasMaster.map(p => {
+        const isSelected = p.id === selectedPersona;
+        return `
+          <button type="button" onclick="selectVotingPersona('${p.id}')" class="p-2.5 rounded-xl border-2 transition text-center flex flex-col items-center justify-center ${
+            isSelected ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:border-orange-300'
+          }">
+            <span class="text-xl mb-0.5">${p.icon}</span>
+            <span class="text-[11px] font-bold truncate max-w-full">${p.name}</span>
+            <span class="text-[9px] text-slate-400">${p.budget}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectVotingPersona(pId) {
+      selectedPersona = pId;
+      renderVotingPersonaButtons();
+      const p = personasMaster.find(item => item.id === pId);
+      showToast(`ペルソナ「${p.name}」を選択しました`);
+    }
+
+    function selectStoreForVote(storeId) {
+      selectedStoreForVote = storeId;
+      renderVotingStores();
+      updateSelectedStorePreview();
+
+      const step3El = document.getElementById('voting-selected-store-preview');
+      if (step3El) {
+        step3El.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function updateSelectedStorePreview() {
+      const previewEl = document.getElementById('voting-selected-store-preview');
+      if (!previewEl) return;
+
+      if (!selectedStoreForVote) {
+        previewEl.innerHTML = `選択中の店舗: <span class="text-indigo-600 font-black">（STEP 2で選択してください）</span>`;
+        return;
+      }
+
+      const st = stores.find(s => s.id === selectedStoreForVote);
+      if (st) {
+        previewEl.innerHTML = `選択中の店舗: <span class="text-orange-600 font-black text-sm">${st.icon || '🏪'} ${st.storeName} (${st.teamName})</span>`;
+      }
+    }
+
+    function appendReasonTag(tagText) {
+      const textarea = document.getElementById('voting-reason-input');
+      if (textarea.value.trim() === '') {
+        textarea.value = tagText;
+      } else {
+        textarea.value += ' ' + tagText;
+      }
+      textarea.focus();
+    }
+
+    function submitFinalVoteWithReason() {
+      if (!selectedStoreForVote) {
+        alert('STEP 2 で投票したいお店を選択してください！');
+        return;
+      }
+
+      const store = stores.find(s => s.id === selectedStoreForVote);
+      if (!store) return;
+
+      const reasonText = document.getElementById('voting-reason-input').value.trim();
+      const defaultReason = '価格・メニュー構成・立地がペルソナのニーズに合致していたため';
+      const finalReason = reasonText || defaultReason;
+
+      store.votes = (store.votes || 0) + 1;
+      if (!store.reasons) store.reasons = [];
+      store.reasons.unshift(finalReason);
+
+      saveStorage();
+      renderVotingStores();
+      renderTeamsList();
+      updateDashboard();
+
+      document.getElementById('voting-reason-input').value = '';
+      showToast(`「${store.storeName}」へ理由付き投票が完了しました！`);
+    }
+
+    function renderVotingStores() {
+      const container = document.getElementById('voting-stores-grid');
+      const totalVotes = stores.reduce((sum, s) => sum + (s.votes || 0), 0);
+      document.getElementById('voting-total-count').textContent = totalVotes;
+      document.getElementById('vote-counter-badge').textContent = `${totalVotes}票`;
+
+      const locationLabels = {
+        gate: '学校エリア（久留米高校前周辺）',
+        station: '駅前・オフィスエリア（西鉄久留米）',
+        arcade: '商店街エリア（六ツ門・一番街）',
+        residential: '住宅エリア（南久留米）'
+      };
+
+      const promoLabels = {
+        sns_reels: 'TikTok/リール動画拡散',
+        school_flyer: '校門前のチラシ配布',
+        coupon: '学割クーポン配布',
+        word_of_mouth: '友達紹介口コミ'
+      };
+
+      if (stores.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full bg-white rounded-3xl p-10 text-center border-2 border-dashed border-slate-200 text-slate-400">
+            <p class="font-bold text-sm">出店店舗がありません</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = stores.map(store => {
+        const sharePercent = totalVotes > 0 ? Math.round(((store.votes || 0) / totalVotes) * 100) : 0;
+        const subCount = store.subProducts ? store.subProducts.length : 0;
+        const isSelected = selectedStoreForVote === store.id;
+
+        return `
+          <div class="bg-white rounded-3xl p-5 shadow-sm border-2 transition flex flex-col justify-between ${
+            isSelected ? 'border-orange-500 ring-2 ring-orange-300 bg-orange-50/20' : 'border-slate-200 hover:border-slate-300'
+          }">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                  ${store.teamName}
+                </span>
+                <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full truncate max-w-[180px]">
+                  📍 ${locationLabels[store.location] || store.location}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-3 my-2">
+                <div class="w-12 h-12 rounded-2xl bg-amber-100/80 border border-amber-200 flex items-center justify-center text-2xl shrink-0">
+                  ${store.icon || '🏪'}
+                </div>
+                <div>
+                  <h3 class="font-black text-base text-slate-900 leading-tight">${store.storeName}</h3>
+                  <p class="text-[11px] font-bold text-orange-600 mt-0.5 line-clamp-1">★看板: ${store.productName}</p>
+                </div>
+              </div>
+
+              <div class="bg-amber-50/50 rounded-2xl p-3 my-3 border border-orange-100 space-y-2 text-[11px]">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-600 font-bold">看板メニュー価格:</span>
+                  <span class="font-mono font-black text-rose-600 text-xs">¥${store.price.toLocaleString()}</span>
+                </div>
+
+                ${subCount > 0 ? `
+                  <div class="pt-1.5 border-t border-amber-200/60">
+                    <span class="text-[10px] font-bold text-slate-500 block mb-1">サイド・セットメニュー:</span>
+                    <div class="flex flex-wrap gap-1">
+                      ${store.subProducts.map(sp => `
+                        <span class="text-[10px] bg-white text-slate-700 font-bold px-2 py-0.5 rounded-md border border-amber-200/80 shadow-2xs">
+                          ${sp.name} <span class="text-orange-600 font-mono">¥${sp.price}</span>
+                        </span>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+
+                <div class="flex items-center justify-between pt-1 border-t border-amber-200/40 text-[10px]">
+                  <span class="text-slate-400 font-medium">販促:</span>
+                  <span class="font-bold text-slate-600">${promoLabels[store.promo] || store.promo}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100">
+              <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
+                <span>得票数: <strong class="text-slate-800 font-black text-sm">${store.votes || 0}</strong> 票</span>
+                <span class="text-orange-600 font-black">${sharePercent}% シェア</span>
+              </div>
+              <button onclick="selectStoreForVote('${store.id}')" class="w-full py-2.5 rounded-2xl font-black text-xs shadow-md transition flex items-center justify-center gap-1.5 active:scale-95 ${
+                isSelected 
+                  ? 'bg-orange-600 text-white ring-2 ring-orange-300' 
+                  : 'bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white'
+              }">
+                <i data-lucide="${isSelected ? 'check-circle-2' : 'mouse-pointer-click'}" class="w-4 h-4"></i>
+                ${isSelected ? '選択中！(下のSTEP 3へ)' : 'この店を選択して理由を書く'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function simulateBatchVotes(count) {
+      if (stores.length === 0) return;
+
+      const sampleReasonList = [
+        '久留米高校前で部活終わりのペコペコ状態に最高！ボリューム満点！',
+        '安くて小遣いの範囲で買えるからコスパ抜群！',
+        '六ツ門のカフェで放課後インスタ映えする写真が撮れる！',
+        '南久留米の静かな場所でWi-Fiと電源があって自習に最適！',
+        '西鉄久留米駅で電車に乗る前にすぐ寄れる！',
+        'サイドメニューの組み合わせが魅力的でついで買いした！'
+      ];
+
+      for (let i = 0; i < count; i++) {
+        const randPersona = personasMaster[Math.floor(Math.random() * personasMaster.length)];
+        
+        const weights = stores.map(store => {
+          let w = 10;
+          if (store.targetPersona === randPersona.id || (store.targetPersona && store.targetPersona.includes(randPersona.name))) w += 25;
+          if (randPersona.id === 'sports' && store.vibe === 'chill') w += 10;
+          if (randPersona.id === 'trend' && store.vibe === 'aesthetic') w += 15;
+          if (randPersona.id === 'study' && store.vibe === 'quiet') w += 18;
+          if (randPersona.id === 'cost' && store.price <= 350) w += 15;
+
+          if (store.subProducts && store.subProducts.length > 0) {
+            w += store.subProducts.length * 2;
+          }
+
+          if (currentEvent && isStoreAffectedByEvent(store, randPersona)) {
+            w *= (currentEvent.boostRate || 1.0);
+          }
+
+          return Math.max(1, w);
+        });
+
+        const sumW = weights.reduce((a, b) => a + b, 0);
+        let rnd = Math.random() * sumW;
+        let chosenIdx = 0;
+        for (let j = 0; j < weights.length; j++) {
+          if (rnd < weights[j]) {
+            chosenIdx = j;
+            break;
+          }
+          rnd -= weights[j];
+        }
+        stores[chosenIdx].votes = (stores[chosenIdx].votes || 0) + 1;
+        if (!stores[chosenIdx].reasons) stores[chosenIdx].reasons = [];
+        stores[chosenIdx].reasons.unshift(sampleReasonList[Math.floor(Math.random() * sampleReasonList.length)]);
+      }
+
+      saveStorage();
+      renderVotingStores();
+      renderTeamsList();
+      updateDashboard();
+      showToast(`クラス35人分の久留米ペルソナ投票（理由付き）を実行しました！`);
+    }
+
+    function resetVotesOnly() {
+      stores.forEach(s => {
+        s.votes = 0;
+        s.reasons = [];
+      });
+      selectedStoreForVote = null;
+      updateSelectedStorePreview();
+      saveStorage();
+      renderVotingStores();
+      renderTeamsList();
+      updateDashboard();
+      showToast('投票数と理由をリセットしました');
+    }
+
+    function isStoreAffectedByEvent(store, persona = null) {
+      if (!currentEvent) return false;
+
+      if (currentEvent.targetStoreIds && currentEvent.targetStoreIds.length > 0) {
+        return currentEvent.targetStoreIds.includes(store.id);
+      }
+
+      if (currentEvent.targetLocations && currentEvent.targetLocations.length > 0) {
+        return currentEvent.targetLocations.includes(store.location);
+      }
+
+      if (currentEvent.targetPersona) {
+        if (persona) return persona.id === currentEvent.targetPersona;
+        return store.targetPersona === currentEvent.targetPersona;
+      }
+
+      return true;
+    }
+
+    // --- 9. Financial Computation & Analytics ---
+    function computeFinancialsForStore(store, isEventApplied = false) {
+      const DAILY_TRAFFIC = 400;
+      const MONTHLY_DAYS = 20;
+      const totalVotes = stores.reduce((sum, s) => sum + (s.votes || 0), 0);
+
+      const votes = store.votes || 0;
+      const share = totalVotes > 0 ? (votes / totalVotes) : (1 / stores.length);
+      const monthlyCustomers = Math.round(DAILY_TRAFFIC * share * MONTHLY_DAYS);
+
+      let costMult = 1.0;
+      if (isEventApplied && currentEvent && isStoreAffectedByEvent(store)) {
+        costMult = currentEvent.costMultiplier || 1.0;
+      }
+
+      const metrics = calculateEffectiveStoreMetrics(store, costMult);
+
+      const revenue = monthlyCustomers * metrics.effectivePrice;
+      const totalVarCost = monthlyCustomers * metrics.effectiveVarCost;
+      const contributionMargin = revenue - totalVarCost;
+      const fixedCost = metrics.totalFixedCost;
+      const operatingProfit = contributionMargin - fixedCost;
+
+      return {
+        monthlyCustomers,
+        effectivePrice: metrics.effectivePrice,
+        revenue,
+        totalVarCost,
+        contributionMargin,
+        fixedCost,
+        operatingProfit
+      };
+    }
+
+    function calculateSimulationMetrics() {
+      const totalVotes = stores.reduce((sum, s) => sum + (s.votes || 0), 0);
+
+      const placeDisplayNames = {
+        gate: '学校エリア（久留米高校前）',
+        station: '駅前（西鉄久留米）',
+        arcade: '商店街（六ツ門・一番街）',
+        residential: '住宅エリア（南久留米）'
+      };
+
+      const results = stores.map(store => {
+        const current = computeFinancialsForStore(store, !!currentEvent);
+        const base = computeFinancialsForStore(store, false);
+        const sharePercent = totalVotes > 0 ? Math.round(((store.votes || 0) / totalVotes) * 100) : Math.round(100 / stores.length);
+
+        let feedbackText = '';
+        if (store.reasons && store.reasons.length > 0) {
+          feedbackText = `「${store.reasons[0]}」`;
+        } else {
+          feedbackText = current.operatingProfit >= 0 ? '「コスパや立地が良く、放課後に利用しやすい！」' : '「価格が高め、または固定費が重く赤字傾向です。」';
+        }
+
+        return {
+          ...store,
+          locationDisplay: placeDisplayNames[store.location] || store.location,
+          sharePercent,
+          ...current,
+          baseMetrics: base,
+          feedbackText
+        };
+      });
+
+      results.sort((a, b) => b.operatingProfit - a.operatingProfit);
+
+      return {
+        results,
+        totalVotes,
+        totalMarketRevenue: results.reduce((sum, r) => sum + r.revenue, 0),
+        totalMarketCustomers: results.reduce((sum, r) => sum + r.monthlyCustomers, 0),
+        totalProfit: results.reduce((sum, r) => sum + r.operatingProfit, 0)
+      };
+    }
+
+    function updateDashboard() {
+      const data = calculateSimulationMetrics();
+      const kpiContainer = document.getElementById('sim-kpi-cards');
+      const tableBody = document.getElementById('sim-financials-tbody');
+      const feedbackGrid = document.getElementById('sim-feedback-grid');
+      const storeSelect = document.getElementById('analysis-store-select');
+
+      if (storeSelect) {
+        const curSelected = storeSelect.value;
+        storeSelect.innerHTML = data.results.map(r => `
+          <option value="${r.id}" ${r.id === curSelected ? 'selected' : ''}>${r.teamName}: ${r.storeName}</option>
+        `).join('');
+      }
+
+      const topProfitStore = data.results[0] || { storeName: 'ー', operatingProfit: 0, teamName: 'ー' };
+      kpiContainer.innerHTML = `
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+          <span class="text-[11px] font-bold text-slate-500 block">放課後商圏 総月商</span>
+          <div class="text-xl font-black text-slate-900 mt-1">¥${data.totalMarketRevenue.toLocaleString()}</div>
+          <span class="text-[10px] text-emerald-600 font-bold">全${data.results.length}店舗の売上合計</span>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+          <span class="text-[11px] font-bold text-slate-500 block">月間総動員客数</span>
+          <div class="text-xl font-black text-slate-900 mt-1">${data.totalMarketCustomers.toLocaleString()} <span class="text-xs font-normal">人</span></div>
+          <span class="text-[10px] text-orange-600 font-bold">400名/日 × 20日稼働</span>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border-2 border-amber-300 bg-amber-50/50 shadow-xs">
+          <span class="text-[11px] font-black text-amber-800 block">👑 営業利益 第1位（勝者）</span>
+          <div class="text-sm font-black text-indigo-900 truncate mt-1">${topProfitStore.teamName} ${topProfitStore.storeName}</div>
+          <div class="text-base font-black text-emerald-600 font-mono">¥${topProfitStore.operatingProfit.toLocaleString()}</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+          <span class="text-[11px] font-bold text-slate-500 block">商圏総営業利益</span>
+          <div class="text-xl font-black ${data.totalProfit >= 0 ? 'text-indigo-600' : 'text-rose-600'} mt-1">
+            ¥${data.totalProfit.toLocaleString()}
+          </div>
+          <span class="text-[10px] ${data.totalProfit >= 0 ? 'text-indigo-500' : 'text-rose-500'} font-bold">全店合計の純営業利益</span>
+        </div>
+      `;
+
+      tableBody.innerHTML = data.results.map((r, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+        const isProfitable = r.operatingProfit >= 0;
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-3 px-3 font-black text-sm">${medal}</td>
+            <td class="py-3 px-3">
+              <div class="font-extrabold text-slate-800">${r.storeName}</div>
+              <div class="text-[10px] text-slate-400 font-bold">${r.teamName}</div>
+            </td>
+            <td class="py-3 px-3 text-[11px] text-slate-600">${r.locationDisplay}</td>
+            <td class="py-3 px-3 text-right font-mono font-bold">${r.monthlyCustomers.toLocaleString()}人</td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-emerald-700">¥${r.effectivePrice.toLocaleString()}</td>
+            <td class="py-3 px-3 text-right font-mono font-black text-slate-900 text-sm">
+              ¥${r.revenue.toLocaleString()}
+            </td>
+            <td class="py-3 px-3 text-right font-mono text-rose-600">¥${r.totalVarCost.toLocaleString()}</td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-indigo-700">¥${r.contributionMargin.toLocaleString()}</td>
+            <td class="py-3 px-3 text-right font-mono text-slate-500">¥${r.fixedCost.toLocaleString()}</td>
+            <td class="py-3 px-3 text-right">
+              <span class="font-mono font-black text-sm ${isProfitable ? 'text-emerald-600' : 'text-rose-600'}">
+                ¥${r.operatingProfit.toLocaleString()}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      feedbackGrid.innerHTML = data.results.map(r => {
+        return `
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/60 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <h4 class="font-black text-xs text-slate-800 truncate">${r.storeName}</h4>
+                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-700">利益 ¥${r.operatingProfit.toLocaleString()}</span>
+              </div>
+              <p class="text-[11px] text-slate-600 italic leading-relaxed">
+                ${r.feedbackText}
+              </p>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      renderCharts(data.results);
+      renderEventImpactAnalysis();
+    }
+
+    function renderEventImpactAnalysis() {
+      const container = document.getElementById('event-analysis-content');
+      const select = document.getElementById('analysis-store-select');
+      if (!container || !select) return;
+
+      const storeId = select.value;
+      const data = calculateSimulationMetrics();
+      const target = data.results.find(r => r.id === storeId) || data.results[0];
+
+      if (!target) {
+        container.innerHTML = `<p class="col-span-4 text-xs text-indigo-300">店舗データがありません。</p>`;
+        return;
+      }
+
+      const cur = target;
+      const base = target.baseMetrics;
+
+      const revDiff = cur.revenue - base.revenue;
+      const varDiff = cur.totalVarCost - base.totalVarCost;
+      const fcDiff = cur.fixedCost - base.fixedCost;
+      const profitDiff = cur.operatingProfit - base.operatingProfit;
+
+      const formatDiff = (num) => {
+        const sign = num > 0 ? '+' : '';
+        const color = num > 0 ? 'text-emerald-400' : (num < 0 ? 'text-rose-400' : 'text-slate-400');
+        return `<span class="${color} font-mono font-extrabold">${sign}¥${num.toLocaleString()}</span>`;
+      };
+
+      const eventName = currentEvent ? `${currentEvent.icon} ${currentEvent.title}` : '平常運転中（イベントなし）';
+      const isAffected = isStoreAffectedByEvent(target);
+
+      let reasonComment = '';
+      if (!currentEvent) {
+        reasonComment = '現在は平常運転中です。教員用管理者設定から突発イベントを発動すると、環境変化による収益・費用・営業利益の増減理由がここに分析表示されます。';
+      } else if (!isAffected) {
+        reasonComment = `現在発動中の「${currentEvent.title}」の対象外エリア・店舗のため、この店舗への直接的な数値変動（影響額）はありませんでした。`;
+      } else if (profitDiff > 0) {
+        reasonComment = `【好影響】「${currentEvent.title}」により顧客ニーズが合致！売上が ${formatDiff(revDiff)} 増加し、変動費の増加を上回る限界利益を生み出したため、営業利益が ${formatDiff(profitDiff)} 押し上げられました。`;
+      } else if (profitDiff < 0) {
+        reasonComment = `【悪影響】「${currentEvent.title}」の影響により、客足の鈍化または原材料高騰（変動費 ${formatDiff(varDiff)}）が直撃。固定費（¥${cur.fixedCost.toLocaleString()}）を賄いきれず利益が ${formatDiff(profitDiff)} 悪化しました。価格改定やメニューピボットが必要です。`;
+      } else {
+        reasonComment = `イベントによる収益と費用の増減が相殺され、営業利益の変動はありませんでした。`;
+      }
+
+      container.innerHTML = `
+        <div class="bg-slate-800/80 rounded-xl p-3 border border-indigo-700/60">
+          <div class="text-[10px] text-indigo-300 font-bold flex justify-between">
+            <span>① 売上高の変動</span>
+            <span class="text-[9px] text-slate-400">客数×客単価</span>
+          </div>
+          <div class="text-base font-black text-white font-mono mt-1">¥${cur.revenue.toLocaleString()}</div>
+          <div class="text-[11px] mt-1 pt-1 border-t border-slate-700/80 flex justify-between">
+            <span class="text-slate-400">通常比:</span>
+            ${formatDiff(revDiff)}
+          </div>
+        </div>
+
+        <div class="bg-slate-800/80 rounded-xl p-3 border border-indigo-700/60">
+          <div class="text-[10px] text-indigo-300 font-bold flex justify-between">
+            <span>② 変動費の変動</span>
+            <span class="text-[9px] text-slate-400">仕入・材料費</span>
+          </div>
+          <div class="text-base font-black text-rose-300 font-mono mt-1">¥${cur.totalVarCost.toLocaleString()}</div>
+          <div class="text-[11px] mt-1 pt-1 border-t border-slate-700/80 flex justify-between">
+            <span class="text-slate-400">通常比:</span>
+            ${formatDiff(varDiff)}
+          </div>
+        </div>
+
+        <div class="bg-slate-800/80 rounded-xl p-3 border border-indigo-700/60">
+          <div class="text-[10px] text-indigo-300 font-bold flex justify-between">
+            <span>③ 固定費合計</span>
+            <span class="text-[9px] text-slate-400">家賃・人件費等</span>
+          </div>
+          <div class="text-base font-black text-slate-300 font-mono mt-1">¥${cur.fixedCost.toLocaleString()}</div>
+          <div class="text-[11px] mt-1 pt-1 border-t border-slate-700/80 flex justify-between">
+            <span class="text-slate-400">通常比:</span>
+            ${formatDiff(fcDiff)}
+          </div>
+        </div>
+
+        <div class="bg-slate-800/80 rounded-xl p-3 border-2 ${profitDiff >= 0 ? 'border-emerald-500 bg-emerald-950/20' : 'border-rose-500 bg-rose-950/20'}">
+          <div class="text-[10px] font-black text-amber-300 flex justify-between">
+            <span>④ 営業利益の増減</span>
+            <span class="text-[9px] bg-slate-700 text-slate-200 px-1 rounded">純利益</span>
+          </div>
+          <div class="text-base font-black font-mono mt-1 ${cur.operatingProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+            ¥${cur.operatingProfit.toLocaleString()}
+          </div>
+          <div class="text-[11px] mt-1 pt-1 border-t border-slate-700/80 flex justify-between">
+            <span class="text-slate-300 font-bold">イベント影響額:</span>
+            ${formatDiff(profitDiff)}
+          </div>
+        </div>
+
+        <div class="col-span-1 md:col-span-4 bg-slate-800/90 rounded-xl p-3 border border-indigo-600 text-xs text-indigo-100 flex items-start gap-2.5">
+          <span class="text-lg">💡</span>
+          <div>
+            <strong class="text-amber-300 font-bold">現在発動中の市場環境: ${eventName}</strong>
+            <p class="mt-0.5 leading-relaxed text-slate-300">${reasonComment}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCharts(results) {
+      const labels = results.map(r => `${r.teamName} (${r.storeName})`);
+      const shares = results.map(r => r.votes);
+      const revenues = results.map(r => r.revenue);
+      const fixedCosts = results.map(r => r.fixedCost);
+      const profits = results.map(r => r.operatingProfit);
+
+      const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#0ea5e9'];
+
+      const pieCtx = document.getElementById('chart-market-share').getContext('2d');
+      if (chartMarketShareInstance) chartMarketShareInstance.destroy();
+
+      chartMarketShareInstance = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: shares.length > 0 && shares.some(v => v > 0) ? shares : [1],
+            backgroundColor: colors.slice(0, labels.length),
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+          }
+        }
+      });
+
+      const barCtx = document.getElementById('chart-financials').getContext('2d');
+      if (chartFinancialsInstance) chartFinancialsInstance.destroy();
+
+      chartFinancialsInstance = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: '売上高 (円)', data: revenues, backgroundColor: 'rgba(99, 102, 241, 0.85)', borderRadius: 6 },
+            { label: '固定費 (円)', data: fixedCosts, backgroundColor: 'rgba(148, 163, 184, 0.7)', borderRadius: 6 },
+            { label: '営業利益 (円)', data: profits, backgroundColor: profits.map(p => p >= 0 ? 'rgba(16, 185, 129, 0.9)' : 'rgba(244, 63, 94, 0.9)'), borderRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: v => '¥' + (v / 10000) + '万', font: { size: 10 } }
+            },
+            x: { ticks: { font: { size: 10 } } }
+          },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    // --- 10. 🔐 管理者・教員専用ロジック ---
+    function openAdminModal() {
+      document.getElementById('admin-pass-input').value = '';
+      document.getElementById('admin-auth-modal').classList.remove('hidden');
+      document.getElementById('admin-pass-input').focus();
+    }
+
+    function closeAdminAuthModal() {
+      document.getElementById('admin-auth-modal').classList.add('hidden');
+    }
+
+    function verifyAdminPassword() {
+      const input = document.getElementById('admin-pass-input').value;
+      if (input === adminPassword) {
+        closeAdminAuthModal();
+        openAdminConsole();
+      } else {
+        alert('パスワードが違います。');
+        document.getElementById('admin-pass-input').focus();
+      }
+    }
+
+    function openAdminConsole() {
+      const container = document.getElementById('admin-target-stores-list');
+      container.innerHTML = stores.map(store => `
+        <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+          <input type="checkbox" name="admin-target-store" value="${store.id}" class="rounded text-indigo-600 focus:ring-indigo-500">
+          <span class="font-bold text-slate-800">${store.teamName}</span>
+          <span class="text-[10px] text-slate-500 truncate">(${store.storeName})</span>
+        </label>
+      `).join('');
+
+      const curText = document.getElementById('admin-current-event-text');
+      if (currentEvent) {
+        curText.innerHTML = `<span class="text-rose-600 font-bold">${currentEvent.icon} ${currentEvent.title}</span> (売上ブースト: ×${currentEvent.boostRate || 1.0} / 原価: ×${currentEvent.costMultiplier || 1.0})`;
+      } else {
+        curText.textContent = '平常運転（イベント未発動）';
+      }
+
+      document.getElementById('admin-console-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeAdminConsoleModal() {
+      document.getElementById('admin-console-modal').classList.add('hidden');
+    }
+
+    function selectTargetPreset(preset) {
+      const checkboxes = document.querySelectorAll('input[name="admin-target-store"]');
+      checkboxes.forEach(cb => {
+        const store = stores.find(s => s.id === cb.value);
+        if (preset === 'all') {
+          cb.checked = true;
+        } else if (store && store.location === preset) {
+          cb.checked = true;
+        } else {
+          cb.checked = false;
+        }
+      });
+    }
+
+    function loadPresetToAdminForm(presetId) {
+      const p = marketEventsMaster.find(e => e.id === presetId);
+      if (!p) return;
+
+      document.getElementById('admin-evt-icon').value = p.icon;
+      document.getElementById('admin-evt-title').value = p.title;
+      document.getElementById('admin-evt-desc').value = p.desc;
+      document.getElementById('admin-evt-boost').value = p.boostRate || 1.0;
+      document.getElementById('admin-evt-costmult').value = p.costMultiplier || 1.0;
+      document.getElementById('admin-evt-advice').value = p.advice;
+
+      if (p.id === 'exam') {
+        selectTargetPreset('all');
+      } else if (p.id === 'rain') {
+        selectTargetPreset('gate');
+        document.querySelectorAll('input[name="admin-target-store"]').forEach(cb => {
+          const s = stores.find(st => st.id === cb.value);
+          if (s && s.location === 'station') cb.checked = true;
+        });
+      } else if (p.id === 'buzz') {
+        selectTargetPreset('arcade');
+      } else {
+        selectTargetPreset('all');
+      }
+    }
+
+    function adminApplyCustomEvent() {
+      const title = document.getElementById('admin-evt-title').value.trim();
+      const desc = document.getElementById('admin-evt-desc').value.trim();
+      const icon = document.getElementById('admin-evt-icon').value.trim() || '⚡';
+      const boostRate = parseFloat(document.getElementById('admin-evt-boost').value) || 1.0;
+      const costMultiplier = parseFloat(document.getElementById('admin-evt-costmult').value) || 1.0;
+      const advice = document.getElementById('admin-evt-advice').value.trim() || '市場の変化を観察し、4Pの修正案を考えましょう。';
+
+      if (!title) {
+        alert('イベント名を入力してください。');
+        return;
+      }
+
+      const selectedStoreIds = Array.from(document.querySelectorAll('input[name="admin-target-store"]:checked')).map(cb => cb.value);
+
+      currentEvent = {
+        id: 'admin_custom_' + Date.now(),
+        title: title,
+        icon: icon,
+        desc: desc || '外部環境に急激な市場変動が発生しました。',
+        boostRate: boostRate,
+        costMultiplier: costMultiplier,
+        targetStoreIds: selectedStoreIds.length > 0 ? selectedStoreIds : null,
+        advice: advice
+      };
+
+      closeAdminConsoleModal();
+      applyEventUI();
+      showToast(`管理者設定: 「${title}」を発動しました！`);
+    }
+
+    function applyEventUI() {
+      const voteBanner = document.getElementById('voting-event-alert');
+      voteBanner.classList.remove('hidden');
+      document.getElementById('voting-event-title').textContent = `${currentEvent.icon} ${currentEvent.title}`;
+      document.getElementById('voting-event-desc').textContent = currentEvent.desc;
+      document.getElementById('event-active-dot').classList.remove('hidden');
+
+      updateDashboard();
+    }
+
+    function clearEvent() {
+      currentEvent = null;
+      document.getElementById('voting-event-alert').classList.add('hidden');
+      document.getElementById('event-active-dot').classList.add('hidden');
+      showToast('平常運転に戻しました');
+      updateDashboard();
+    }
+
+    function adminResetEvent() {
+      clearEvent();
+      closeAdminConsoleModal();
+    }
+
+    function changeAdminPassword() {
+      const newP = document.getElementById('admin-new-pass').value.trim();
+      if (newP.length < 4) {
+        alert('パスワードは4文字以上で入力してください。');
+        return;
+      }
+      adminPassword = newP;
+      localStorage.setItem('market_admin_pass', newP);
+      document.getElementById('admin-new-pass').value = '';
+      alert('管理者パスワードを更新しました。');
+    }
+
+    // --- 11. Header Controls ---
+    document.getElementById('btn-quick-sample').addEventListener('click', () => {
+      stores = JSON.parse(JSON.stringify(defaultSampleStores));
+      currentEvent = null;
+      selectedStoreForVote = null;
+      updateSelectedStorePreview();
+      saveStorage();
+      renderTeamsList();
+      renderMapPins();
+      renderVotingStores();
+      updateDashboard();
+      clearEvent();
+      showToast('久留米サンプル4店舗データを読み込みました');
+    });
+
+    document.getElementById('btn-reset-all').addEventListener('click', () => {
+      stores = [];
+      currentEvent = null;
+      selectedStoreForVote = null;
+      updateSelectedStorePreview();
+      cancelEdit();
+      saveStorage();
+      renderTeamsList();
+      renderMapPins();
+      renderVotingStores();
+      updateDashboard();
+      clearEvent();
+      showToast('全データを初期化しました');
+    });
+
+    // --- 12. Toast Feedback Utility ---
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      toastMsg.textContent = msg;
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
