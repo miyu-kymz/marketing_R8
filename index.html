@@ -1,6 +1,59 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <!-- Firebase SDKの読み込み (CDN) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // ステップ1で控えた設定情報を貼り付け
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "...",
+    appId: "..."
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // --- クラウドからのリアルタイム受信 ---
+  const marketRef = ref(db, 'marketData');
+  onValue(marketRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      stores = data.stores || [];
+      currentEvent = data.currentEvent || null;
+      
+      // 全画面の再描画を即座に実行
+      renderTeamsList();
+      renderMapPins();
+      renderVotingStores();
+      updateDashboard();
+      
+      if (currentEvent) {
+        applyEventUI();
+      } else {
+        const voteBanner = document.getElementById('voting-event-alert');
+        if (voteBanner) voteBanner.classList.add('hidden');
+        const pingDot = document.getElementById('event-active-dot');
+        if (pingDot) pingDot.classList.add('hidden');
+      }
+    }
+  });
+
+  // --- クラウドへの保存関数（グローバルに公開） ---
+  window.saveToCloud = function() {
+    set(ref(db, 'marketData'), {
+      stores: stores,
+      currentEvent: currentEvent
+    });
+  };
+</script>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MarketPBL | 久留米商圏 営業利益バトル＆損益分析シミュレーター</title>
