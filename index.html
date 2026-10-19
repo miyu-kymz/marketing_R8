@@ -7,15 +7,15 @@
   import { getDatabase, ref, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
   // ステップ1で控えた設定情報を貼り付け
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "...",
-    appId: "..."
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyD0ODQw80oBlLCXZDayamSpTLR59ObodRI",
+  authDomain: "marketing-r8.firebaseapp.com",
+  databaseURL: "https://marketing-r8-default-rtdb.firebaseio.com",
+  projectId: "marketing-r8",
+  storageBucket: "marketing-r8.firebasestorage.app",
+  messagingSenderId: "293224293790",
+  appId: "1:293224293790:web:e7021e1707cd761e43e28f"
+};
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
