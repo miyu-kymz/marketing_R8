@@ -1,62 +1,66 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <!-- Firebase SDKの読み込み (CDN) -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-  // ステップ1で控えた設定情報を貼り付け
-const firebaseConfig = {
-  apiKey: "AIzaSyD0ODQw80oBlLCXZDayamSpTLR59ObodRI",
-  authDomain: "marketing-r8.firebaseapp.com",
-  databaseURL: "https://marketing-r8-default-rtdb.firebaseio.com",
-  projectId: "marketing-r8",
-  storageBucket: "marketing-r8.firebasestorage.app",
-  messagingSenderId: "293224293790",
-  appId: "1:293224293790:web:e7021e1707cd761e43e28f"
-};
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  // --- クラウドからのリアルタイム受信 ---
-  const marketRef = ref(db, 'marketData');
-  onValue(marketRef, (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      stores = data.stores || [];
-      currentEvent = data.currentEvent || null;
-      
-      // 全画面の再描画を即座に実行
-      renderTeamsList();
-      renderMapPins();
-      renderVotingStores();
-      updateDashboard();
-      
-      if (currentEvent) {
-        applyEventUI();
-      } else {
-        const voteBanner = document.getElementById('voting-event-alert');
-        if (voteBanner) voteBanner.classList.add('hidden');
-        const pingDot = document.getElementById('event-active-dot');
-        if (pingDot) pingDot.classList.add('hidden');
-      }
-    }
-  });
-
-  // --- クラウドへの保存関数（グローバルに公開） ---
-  window.saveToCloud = function() {
-    set(ref(db, 'marketData'), {
-      stores: stores,
-      currentEvent: currentEvent
-    });
-  };
-</script>
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MarketPBL | 久留米商圏 営業利益バトル＆損益分析シミュレーター</title>
+
+  <!-- Firebase SDK (CDN) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0ODQw80oBlLCXZDayamSpTLR59ObodRI",
+      authDomain: "marketing-r8.firebaseapp.com",
+      databaseURL: "https://marketing-r8-default-rtdb.firebaseio.com",
+      projectId: "marketing-r8",
+      storageBucket: "marketing-r8.firebasestorage.app",
+      messagingSenderId: "293224293790",
+      appId: "1:293224293790:web:e7021e1707cd761e43e28f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // --- クラウドからのリアルタイム受信 ---
+    const marketRef = ref(db, 'marketData');
+    onValue(marketRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        window.stores = data.stores || [];
+        window.currentEvent = data.currentEvent || null;
+        
+        // 全画面の再描画
+        if (typeof window.renderTeamsList === 'function') window.renderTeamsList();
+        if (typeof window.renderMapPins === 'function') window.renderMapPins();
+        if (typeof window.renderVotingStores === 'function') window.renderVotingStores();
+        if (typeof window.updateDashboard === 'function') window.updateDashboard();
+        
+        if (window.currentEvent) {
+          if (typeof window.applyEventUI === 'function') window.applyEventUI();
+        } else {
+          const voteBanner = document.getElementById('voting-event-alert');
+          if (voteBanner) voteBanner.classList.add('hidden');
+          const pingDot = document.getElementById('event-active-dot');
+          if (pingDot) pingDot.classList.add('hidden');
+        }
+      }
+    });
+
+    // --- クラウドへの保存関数（グローバルに統一） ---
+    window.saveStorage = function() {
+      localStorage.setItem('market_sim_stores_v5', JSON.stringify(window.stores || []));
+      set(ref(db, 'marketData'), {
+        stores: window.stores || [],
+        currentEvent: window.currentEvent || null,
+        updatedAt: Date.now()
+      }).catch(err => {
+        console.error("Firebase保存エラー:", err);
+      });
+    };
+  </script>
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js CDN -->
@@ -106,7 +110,6 @@ const firebaseConfig = {
 
       <!-- Header Action Controls -->
       <div class="flex items-center gap-2">
-        <!-- 教員専用 管理者設定ボタン -->
         <button onclick="openAdminModal()" class="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-sm">
           <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
           🔐 管理者設定
@@ -347,20 +350,20 @@ const firebaseConfig = {
       </div>
     </div>
 
-    <!-- TAB 2: COMMERCIAL DISTRICT MAP (久留米実在地理マップ) -->
+    <!-- TAB 2: MAP -->
     <div id="tab-map" class="tab-content hidden space-y-6">
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
         <div class="flex flex-wrap items-center justify-between mb-4 gap-2">
           <div>
             <div class="flex items-center gap-2">
-              <span class="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-black rounded-md">久留米実在エリア重ね合わせ[cite: 2]</span>
+              <span class="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-black rounded-md">久留米実在エリア重ね合わせ</span>
               <h2 class="text-base font-extrabold text-slate-800">久留米商圏マップ＆生徒・住民の人流動線</h2>
             </div>
-            <p class="text-xs text-slate-500 mt-0.5">西鉄久留米駅・六ツ門商店街・久留米高校前・南久留米の4つの実在エリアと各班の立地分布です[cite: 2]。</p>
+            <p class="text-xs text-slate-500 mt-0.5">西鉄久留米駅・六ツ門商店街・久留米高校前・南久留米の4つの実在エリアと各班の立地分布です。</p>
           </div>
           <div class="flex gap-2">
             <span class="inline-flex items-center text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-bold">
-              <i data-lucide="navigation" class="w-3.5 h-3.5 mr-1 text-blue-600"></i> 主動線: 国道209号 ⇄ 明治通り ⇄ 西鉄久留米[cite: 2]
+              <i data-lucide="navigation" class="w-3.5 h-3.5 mr-1 text-blue-600"></i> 主動線: 国道209号 ⇄ 明治通り ⇄ 西鉄久留米
             </span>
           </div>
         </div>
@@ -377,24 +380,24 @@ const firebaseConfig = {
           </svg>
 
           <div class="absolute top-10 left-[480px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">
-            🏛️ 久留米シティプラザ[cite: 2]
+            🏛️ 久留米シティプラザ
           </div>
           <div class="absolute top-[280px] left-[320px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">
-            🏥 聖マリア病院[cite: 2]
+            🏥 聖マリア病院
           </div>
           <div class="absolute bottom-20 left-[260px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">
-            🌳 津福公園[cite: 2]
+            🌳 津福公園
           </div>
 
           <div class="absolute top-5 left-10 w-72 bg-emerald-50/95 border-2 border-rose-500 rounded-3xl p-3.5 shadow-md backdrop-blur-xs">
             <div class="flex items-center justify-between">
               <span class="text-xs font-black text-rose-700 flex items-center gap-1">
                 <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
-                商店街エリア（六ツ門・一番街）[cite: 2]
+                商店街エリア（六ツ門・一番街）
               </span>
               <span class="text-[9px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded-full font-bold">家賃: ¥75,000</span>
             </div>
-            <p class="text-[11px] text-slate-600 mt-1">シティプラザ沿い。カフェや放課後のおしゃべり、散策生徒が集まる[cite: 2]。</p>
+            <p class="text-[11px] text-slate-600 mt-1">シティプラザ沿い。カフェや放課後のおしゃべり、散策生徒が集まる。</p>
             <div id="map-zone-arcade" class="mt-2.5 space-y-1.5 overflow-y-auto max-h-24 pr-1"></div>
           </div>
 
@@ -402,7 +405,7 @@ const firebaseConfig = {
             <div class="flex items-center justify-between">
               <span class="text-xs font-black text-rose-700 flex items-center gap-1">
                 <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
-                駅前・オフィスエリア（西鉄久留米）[cite: 2]
+                駅前・オフィスエリア（西鉄久留米）
               </span>
               <span class="text-[9px] bg-blue-200 text-blue-900 px-1.5 py-0.5 rounded-full font-bold">家賃: ¥100,000</span>
             </div>
@@ -414,11 +417,11 @@ const firebaseConfig = {
             <div class="flex items-center justify-between">
               <span class="text-xs font-black text-rose-700 flex items-center gap-1">
                 <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
-                住宅エリア（南久留米駅周辺）[cite: 2]
+                住宅エリア（南久留米駅周辺）
               </span>
               <span class="text-[9px] bg-purple-200 text-purple-900 px-1.5 py-0.5 rounded-full font-bold">家賃: ¥40,000</span>
             </div>
-            <p class="text-[11px] text-slate-600 mt-1">久大本線沿いの落ち着いた居住区。家賃最安。自習・固定ファン・ファミリー向き[cite: 2]。</p>
+            <p class="text-[11px] text-slate-600 mt-1">久大本線沿いの落ち着いた居住区。家賃最安。自習・固定ファン・ファミリー向き。</p>
             <div id="map-zone-residential" class="mt-2.5 space-y-1.5 overflow-y-auto max-h-24 pr-1"></div>
           </div>
 
@@ -426,18 +429,18 @@ const firebaseConfig = {
             <div class="flex items-center justify-between">
               <span class="text-xs font-black text-rose-700 flex items-center gap-1">
                 <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
-                学校エリア（久留米高校前周辺）[cite: 2]
+                学校エリア（久留米高校前周辺）
               </span>
               <span class="text-[9px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-full font-bold">家賃: ¥60,000</span>
             </div>
-            <p class="text-[11px] text-slate-600 mt-1">高校周辺・通学路の直撃立地。放課後に運動部や下校生徒が密集して買い食いする[cite: 2]。</p>
+            <p class="text-[11px] text-slate-600 mt-1">高校周辺・通学路の直撃立地。放課後に運動部や下校生徒が密集して買い食いする。</p>
             <div id="map-zone-gate" class="mt-2.5 space-y-1.5 overflow-y-auto max-h-24 pr-1"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- TAB 3: AFTER-SCHOOL VOTING (旧TAB 4) -->
+    <!-- TAB 3: VOTING -->
     <div id="tab-voting" class="tab-content hidden space-y-6">
       <div class="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -550,7 +553,7 @@ const firebaseConfig = {
       </div>
     </div>
 
-    <!-- TAB 4: SIMULATION & EVENT IMPACT ANALYSIS (旧TAB 5) -->
+    <!-- TAB 4: SIMULATION & EVENT IMPACT ANALYSIS -->
     <div id="tab-simulation" class="tab-content hidden space-y-6">
       <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-md flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -668,9 +671,7 @@ const firebaseConfig = {
 
   </main>
 
-  <!-- ============================================== -->
-  <!-- 🔐 管理者・教員専用 パスワード認証モーダル     -->
-  <!-- ============================================== -->
+  <!-- 🔐 管理者・教員専用 モーダル -->
   <div id="admin-auth-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 text-center">
       <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto text-amber-700 text-2xl mb-3">
@@ -695,12 +696,9 @@ const firebaseConfig = {
     </div>
   </div>
 
-  <!-- ============================================== -->
-  <!-- ⚙️ 管理者専用コンソール（イベント＆対象店舗管理） -->
-  <!-- ============================================== -->
+  <!-- ⚙️ 管理者専用コンソール -->
   <div id="admin-console-modal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
-      <!-- Modal Header -->
       <div class="px-6 py-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></span>
@@ -711,10 +709,7 @@ const firebaseConfig = {
         </button>
       </div>
 
-      <!-- Modal Body -->
       <div class="p-6 overflow-y-auto custom-scrollbar space-y-6 text-xs">
-        
-        <!-- 現在のステータス -->
         <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between">
           <div>
             <span class="text-[10px] font-black uppercase text-amber-800">現在の発動状況</span>
@@ -725,7 +720,6 @@ const firebaseConfig = {
           </button>
         </div>
 
-        <!-- プリセットイベントのワンクリック選択 -->
         <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-2">
           <label class="block font-extrabold text-slate-800 text-xs">プリセットから選んで入力:</label>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -748,7 +742,6 @@ const firebaseConfig = {
           </div>
         </div>
 
-        <!-- カスタムイベント作成フォーム -->
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
           <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
             <span class="text-base">⚡</span>
@@ -771,7 +764,6 @@ const firebaseConfig = {
             <textarea id="admin-evt-desc" rows="2" placeholder="例: 駅周辺に数千人の人流が集中。駅前エリアの店舗は大混雑となり、他のエリアは閑散。" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"></textarea>
           </div>
 
-          <!-- パラメータ変動設定 -->
           <div class="grid grid-cols-2 gap-3 p-3 bg-white rounded-xl border border-slate-200">
             <div>
               <label class="block font-bold text-slate-700 mb-0.5">客数ブースト倍率 (売上影響)</label>
@@ -785,7 +777,6 @@ const firebaseConfig = {
             </div>
           </div>
 
-          <!-- 影響を与える対象店舗の指定 -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <label class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
@@ -825,7 +816,6 @@ const firebaseConfig = {
           </button>
         </div>
 
-        <!-- パスワード変更 -->
         <div class="pt-4 border-t border-slate-200 flex items-center justify-between text-slate-500 text-[11px]">
           <span>管理者パスワード設定:</span>
           <div class="flex gap-2">
@@ -833,7 +823,6 @@ const firebaseConfig = {
             <button onclick="changeAdminPassword()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded font-bold">更新</button>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -858,7 +847,6 @@ const firebaseConfig = {
   </footer>
 
   <script>
-    // --- 1. Master Data Definitions ---
     const rentMap = {
       gate: 60000,
       station: 100000,
@@ -985,8 +973,6 @@ const firebaseConfig = {
         boostPersona: 'study',
         boostRate: 2.3,
         costMultiplier: 1.0,
-        targetScope: 'persona',
-        targetPersona: 'study',
         advice: '静寂環境・Wi-Fi完備の店舗に客が集中します。'
       },
       {
@@ -997,8 +983,6 @@ const firebaseConfig = {
         boostLocations: ['gate', 'station'],
         boostRate: 1.85,
         costMultiplier: 1.0,
-        targetScope: 'location',
-        targetLocations: ['gate', 'station'],
         advice: '至近立地が圧倒的有利。遠方の商店街や住宅街は集客対策が必要。'
       },
       {
@@ -1009,8 +993,6 @@ const firebaseConfig = {
         boostPersona: 'trend',
         boostRate: 2.6,
         costMultiplier: 1.0,
-        targetScope: 'persona',
-        targetPersona: 'trend',
         advice: 'SNS販促とビジュアル重視の店舗の売上が爆発します。'
       },
       {
@@ -1020,23 +1002,22 @@ const firebaseConfig = {
         desc: '仕入材料費が25%急騰！全店舗の限界利益を直撃！',
         boostRate: 1.0,
         costMultiplier: 1.25,
-        targetScope: 'all',
         advice: '変動費の高い店舗は利益が激減します。客単価UPや付加価値ピボットが急務。'
       }
     ];
 
-    // --- 2. State Variables ---
-    let stores = [];
-    let selectedPersona = 'sports';
-    let selectedStoreForVote = null;
-    let currentEvent = null;
+    // --- State Variables ---
+    window.stores = [];
+    window.selectedPersona = 'sports';
+    window.selectedStoreForVote = null;
+    window.currentEvent = null;
     let adminPassword = localStorage.getItem('market_admin_pass') || 'teacher2026';
     let chartMarketShareInstance = null;
     let chartFinancialsInstance = null;
 
-    // --- 3. App Initialization ---
+    // --- App Init ---
     window.addEventListener('DOMContentLoaded', () => {
-      loadStorage();
+      loadLocalStorageBackup();
       renderTeamsList();
       renderMapPins();
       renderVotingPersonaButtons();
@@ -1045,21 +1026,17 @@ const firebaseConfig = {
       lucide.createIcons();
     });
 
-    function loadStorage() {
+    function loadLocalStorageBackup() {
       const saved = localStorage.getItem('market_sim_stores_v5');
       if (saved) {
         try {
-          stores = JSON.parse(saved);
+          window.stores = JSON.parse(saved);
         } catch (e) {
-          stores = JSON.parse(JSON.stringify(defaultSampleStores));
+          window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
         }
       } else {
-        stores = JSON.parse(JSON.stringify(defaultSampleStores));
+        window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
       }
-    }
-
-    function saveStorage() {
-      localStorage.setItem('market_sim_stores_v5', JSON.stringify(stores));
     }
 
     function toggleCustomField(selectId, inputId) {
@@ -1086,7 +1063,7 @@ const firebaseConfig = {
       document.getElementById('main-margin-badge').textContent = `限界利益: ¥${margin.toLocaleString()} (${ratio}%)`;
     }
 
-    // --- Sub-Products Management in Form ---
+    // --- Sub-Products Management ---
     const subproductsContainer = document.getElementById('subproducts-container');
     document.getElementById('btn-add-subproduct').addEventListener('click', () => {
       addSubProductRow();
@@ -1137,7 +1114,7 @@ const firebaseConfig = {
       });
     }
 
-    // --- 4. Cross-sell and Effective Metrics Helper ---
+    // --- Calculation Helpers ---
     function calculateEffectiveStoreMetrics(store, costMultiplier = 1.0) {
       const CROSS_SELL_RATE = 0.35;
       
@@ -1165,8 +1142,8 @@ const firebaseConfig = {
       };
     }
 
-    // --- 5. Tab Navigation ---
-    function switchTab(targetTabId) {
+    // --- Navigation ---
+    window.switchTab = function(targetTabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-tab').forEach(btn => {
         btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
@@ -1192,7 +1169,7 @@ const firebaseConfig = {
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
       lucide.createIcons();
-    }
+    };
 
     document.querySelectorAll('.nav-tab').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1201,11 +1178,11 @@ const firebaseConfig = {
       });
     });
 
-    // --- 6. TAB 1: 4P Store CRUD Operations ---
-    function renderTeamsList() {
+    // --- Store Management ---
+    window.renderTeamsList = function() {
       const container = document.getElementById('teams-container');
       const badge = document.getElementById('team-badge-count');
-      badge.textContent = stores.length;
+      badge.textContent = window.stores.length;
 
       const placeLabels = {
         gate: '学校エリア（久留米高校前周辺）',
@@ -1214,19 +1191,19 @@ const firebaseConfig = {
         residential: '住宅エリア（南久留米）'
       };
 
-      if (stores.length === 0) {
+      if (window.stores.length === 0) {
         container.innerHTML = `
           <div class="col-span-full border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center text-slate-400">
             <i data-lucide="store" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
             <p class="font-bold text-sm">登録店舗がありません</p>
-            <p class="text-xs mt-1">左のフォームから入力するか「サンプル4店舗読込」を押してください。</p>
+            <p class="text-xs mt-1">左のフォームから入力するか「サンプル4店舗」を押してください。</p>
           </div>
         `;
         lucide.createIcons();
         return;
       }
 
-      container.innerHTML = stores.map(store => {
+      container.innerHTML = window.stores.map(store => {
         const metrics = calculateEffectiveStoreMetrics(store);
         const subCount = store.subProducts ? store.subProducts.length : 0;
 
@@ -1285,12 +1262,11 @@ const firebaseConfig = {
       }).join('');
 
       lucide.createIcons();
-    }
+    };
 
     document.getElementById('store-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const editId = document.getElementById('edit-team-id').value;
-
       const subProducts = getSubProductsFromForm();
 
       const vibeSelect = document.getElementById('prod-vibe').value;
@@ -1328,28 +1304,28 @@ const firebaseConfig = {
       };
 
       if (editId) {
-        const idx = stores.findIndex(s => s.id === editId);
+        const idx = window.stores.findIndex(s => s.id === editId);
         if (idx !== -1) {
-          storeData.votes = stores[idx].votes;
-          storeData.reasons = stores[idx].reasons || [];
-          stores[idx] = storeData;
+          storeData.votes = window.stores[idx].votes;
+          storeData.reasons = window.stores[idx].reasons || [];
+          window.stores[idx] = storeData;
         }
         cancelEdit();
         showToast(`「${storeData.storeName}」を更新しました`);
       } else {
-        stores.push(storeData);
+        window.stores.push(storeData);
         showToast(`「${storeData.storeName}」を新規登録しました`);
       }
 
-      saveStorage();
+      window.saveStorage();
       renderTeamsList();
       renderMapPins();
       renderVotingStores();
       updateDashboard();
     });
 
-    function editStore(id) {
-      const s = stores.find(item => item.id === id);
+    window.editStore = function(id) {
+      const s = window.stores.find(item => item.id === id);
       if (!s) return;
 
       document.getElementById('edit-team-id').value = s.id;
@@ -1414,7 +1390,7 @@ const firebaseConfig = {
       document.getElementById('editing-indicator').classList.remove('hidden');
 
       switchTab('tab-teams');
-    }
+    };
 
     function cancelEdit() {
       document.getElementById('edit-team-id').value = '';
@@ -1432,28 +1408,28 @@ const firebaseConfig = {
 
     document.getElementById('btn-cancel-edit').addEventListener('click', cancelEdit);
 
-    function deleteStore(id) {
-      stores = stores.filter(s => s.id !== id);
-      if (selectedStoreForVote === id) {
-        selectedStoreForVote = null;
+    window.deleteStore = function(id) {
+      window.stores = window.stores.filter(s => s.id !== id);
+      if (window.selectedStoreForVote === id) {
+        window.selectedStoreForVote = null;
         updateSelectedStorePreview();
       }
-      saveStorage();
+      window.saveStorage();
       renderTeamsList();
       renderMapPins();
       renderVotingStores();
       updateDashboard();
       showToast('店舗を削除しました');
-    }
+    };
 
-    // --- 7. TAB 2: Map Rendering ---
-    function renderMapPins() {
+    // --- Map Rendering ---
+    window.renderMapPins = function() {
       ['station', 'gate', 'arcade', 'residential'].forEach(zone => {
         const el = document.getElementById(`map-zone-${zone}`);
         if (el) el.innerHTML = '';
       });
 
-      stores.forEach(store => {
+      window.stores.forEach(store => {
         const zoneEl = document.getElementById(`map-zone-${store.location}`);
         if (zoneEl) {
           const metrics = calculateEffectiveStoreMetrics(store);
@@ -1469,13 +1445,13 @@ const firebaseConfig = {
           zoneEl.appendChild(item);
         }
       });
-    }
+    };
 
-    // --- 8. TAB 3: Voting ---
-    function renderVotingPersonaButtons() {
+    // --- Voting ---
+    window.renderVotingPersonaButtons = function() {
       const container = document.getElementById('voting-persona-buttons');
       container.innerHTML = personasMaster.map(p => {
-        const isSelected = p.id === selectedPersona;
+        const isSelected = p.id === window.selectedPersona;
         return `
           <button type="button" onclick="selectVotingPersona('${p.id}')" class="p-2.5 rounded-xl border-2 transition text-center flex flex-col items-center justify-center ${
             isSelected ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:border-orange-300'
@@ -1486,17 +1462,17 @@ const firebaseConfig = {
           </button>
         `;
       }).join('');
-    }
+    };
 
-    function selectVotingPersona(pId) {
-      selectedPersona = pId;
+    window.selectVotingPersona = function(pId) {
+      window.selectedPersona = pId;
       renderVotingPersonaButtons();
       const p = personasMaster.find(item => item.id === pId);
       showToast(`ペルソナ「${p.name}」を選択しました`);
-    }
+    };
 
-    function selectStoreForVote(storeId) {
-      selectedStoreForVote = storeId;
+    window.selectStoreForVote = function(storeId) {
+      window.selectedStoreForVote = storeId;
       renderVotingStores();
       updateSelectedStorePreview();
 
@@ -1504,24 +1480,24 @@ const firebaseConfig = {
       if (step3El) {
         step3El.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    }
+    };
 
     function updateSelectedStorePreview() {
       const previewEl = document.getElementById('voting-selected-store-preview');
       if (!previewEl) return;
 
-      if (!selectedStoreForVote) {
+      if (!window.selectedStoreForVote) {
         previewEl.innerHTML = `選択中の店舗: <span class="text-indigo-600 font-black">（STEP 2で選択してください）</span>`;
         return;
       }
 
-      const st = stores.find(s => s.id === selectedStoreForVote);
+      const st = window.stores.find(s => s.id === window.selectedStoreForVote);
       if (st) {
         previewEl.innerHTML = `選択中の店舗: <span class="text-orange-600 font-black text-sm">${st.icon || '🏪'} ${st.storeName} (${st.teamName})</span>`;
       }
     }
 
-    function appendReasonTag(tagText) {
+    window.appendReasonTag = function(tagText) {
       const textarea = document.getElementById('voting-reason-input');
       if (textarea.value.trim() === '') {
         textarea.value = tagText;
@@ -1529,15 +1505,15 @@ const firebaseConfig = {
         textarea.value += ' ' + tagText;
       }
       textarea.focus();
-    }
+    };
 
-    function submitFinalVoteWithReason() {
-      if (!selectedStoreForVote) {
+    window.submitFinalVoteWithReason = function() {
+      if (!window.selectedStoreForVote) {
         alert('STEP 2 で投票したいお店を選択してください！');
         return;
       }
 
-      const store = stores.find(s => s.id === selectedStoreForVote);
+      const store = window.stores.find(s => s.id === window.selectedStoreForVote);
       if (!store) return;
 
       const reasonText = document.getElementById('voting-reason-input').value.trim();
@@ -1548,18 +1524,18 @@ const firebaseConfig = {
       if (!store.reasons) store.reasons = [];
       store.reasons.unshift(finalReason);
 
-      saveStorage();
+      window.saveStorage();
       renderVotingStores();
       renderTeamsList();
       updateDashboard();
 
       document.getElementById('voting-reason-input').value = '';
       showToast(`「${store.storeName}」へ理由付き投票が完了しました！`);
-    }
+    };
 
-    function renderVotingStores() {
+    window.renderVotingStores = function() {
       const container = document.getElementById('voting-stores-grid');
-      const totalVotes = stores.reduce((sum, s) => sum + (s.votes || 0), 0);
+      const totalVotes = window.stores.reduce((sum, s) => sum + (s.votes || 0), 0);
       document.getElementById('voting-total-count').textContent = totalVotes;
       document.getElementById('vote-counter-badge').textContent = `${totalVotes}票`;
 
@@ -1577,7 +1553,7 @@ const firebaseConfig = {
         word_of_mouth: '友達紹介口コミ'
       };
 
-      if (stores.length === 0) {
+      if (window.stores.length === 0) {
         container.innerHTML = `
           <div class="col-span-full bg-white rounded-3xl p-10 text-center border-2 border-dashed border-slate-200 text-slate-400">
             <p class="font-bold text-sm">出店店舗がありません</p>
@@ -1586,10 +1562,10 @@ const firebaseConfig = {
         return;
       }
 
-      container.innerHTML = stores.map(store => {
+      container.innerHTML = window.stores.map(store => {
         const sharePercent = totalVotes > 0 ? Math.round(((store.votes || 0) / totalVotes) * 100) : 0;
         const subCount = store.subProducts ? store.subProducts.length : 0;
-        const isSelected = selectedStoreForVote === store.id;
+        const isSelected = window.selectedStoreForVote === store.id;
 
         return `
           <div class="bg-white rounded-3xl p-5 shadow-sm border-2 transition flex flex-col justify-between ${
@@ -1660,10 +1636,10 @@ const firebaseConfig = {
       }).join('');
 
       lucide.createIcons();
-    }
+    };
 
-    function simulateBatchVotes(count) {
-      if (stores.length === 0) return;
+    window.simulateBatchVotes = function(count) {
+      if (window.stores.length === 0) return;
 
       const sampleReasonList = [
         '久留米高校前で部活終わりのペコペコ状態に最高！ボリューム満点！',
@@ -1677,7 +1653,7 @@ const firebaseConfig = {
       for (let i = 0; i < count; i++) {
         const randPersona = personasMaster[Math.floor(Math.random() * personasMaster.length)];
         
-        const weights = stores.map(store => {
+        const weights = window.stores.map(store => {
           let w = 10;
           if (store.targetPersona === randPersona.id || (store.targetPersona && store.targetPersona.includes(randPersona.name))) w += 25;
           if (randPersona.id === 'sports' && store.vibe === 'chill') w += 10;
@@ -1689,8 +1665,8 @@ const firebaseConfig = {
             w += store.subProducts.length * 2;
           }
 
-          if (currentEvent && isStoreAffectedByEvent(store, randPersona)) {
-            w *= (currentEvent.boostRate || 1.0);
+          if (window.currentEvent && isStoreAffectedByEvent(store, randPersona)) {
+            w *= (window.currentEvent.boostRate || 1.0);
           }
 
           return Math.max(1, w);
@@ -1706,64 +1682,64 @@ const firebaseConfig = {
           }
           rnd -= weights[j];
         }
-        stores[chosenIdx].votes = (stores[chosenIdx].votes || 0) + 1;
-        if (!stores[chosenIdx].reasons) stores[chosenIdx].reasons = [];
-        stores[chosenIdx].reasons.unshift(sampleReasonList[Math.floor(Math.random() * sampleReasonList.length)]);
+        window.stores[chosenIdx].votes = (window.stores[chosenIdx].votes || 0) + 1;
+        if (!window.stores[chosenIdx].reasons) window.stores[chosenIdx].reasons = [];
+        window.stores[chosenIdx].reasons.unshift(sampleReasonList[Math.floor(Math.random() * sampleReasonList.length)]);
       }
 
-      saveStorage();
+      window.saveStorage();
       renderVotingStores();
       renderTeamsList();
       updateDashboard();
       showToast(`クラス35人分の久留米ペルソナ投票（理由付き）を実行しました！`);
-    }
+    };
 
-    function resetVotesOnly() {
-      stores.forEach(s => {
+    window.resetVotesOnly = function() {
+      window.stores.forEach(s => {
         s.votes = 0;
         s.reasons = [];
       });
-      selectedStoreForVote = null;
+      window.selectedStoreForVote = null;
       updateSelectedStorePreview();
-      saveStorage();
+      window.saveStorage();
       renderVotingStores();
       renderTeamsList();
       updateDashboard();
       showToast('投票数と理由をリセットしました');
-    }
+    };
 
     function isStoreAffectedByEvent(store, persona = null) {
-      if (!currentEvent) return false;
+      if (!window.currentEvent) return false;
 
-      if (currentEvent.targetStoreIds && currentEvent.targetStoreIds.length > 0) {
-        return currentEvent.targetStoreIds.includes(store.id);
+      if (window.currentEvent.targetStoreIds && window.currentEvent.targetStoreIds.length > 0) {
+        return window.currentEvent.targetStoreIds.includes(store.id);
       }
 
-      if (currentEvent.targetLocations && currentEvent.targetLocations.length > 0) {
-        return currentEvent.targetLocations.includes(store.location);
+      if (window.currentEvent.targetLocations && window.currentEvent.targetLocations.length > 0) {
+        return window.currentEvent.targetLocations.includes(store.location);
       }
 
-      if (currentEvent.targetPersona) {
-        if (persona) return persona.id === currentEvent.targetPersona;
-        return store.targetPersona === currentEvent.targetPersona;
+      if (window.currentEvent.targetPersona) {
+        if (persona) return persona.id === window.currentEvent.targetPersona;
+        return store.targetPersona === window.currentEvent.targetPersona;
       }
 
       return true;
     }
 
-    // --- 9. Financial Computation & Analytics ---
+    // --- Financial Simulation ---
     function computeFinancialsForStore(store, isEventApplied = false) {
       const DAILY_TRAFFIC = 400;
       const MONTHLY_DAYS = 20;
-      const totalVotes = stores.reduce((sum, s) => sum + (s.votes || 0), 0);
+      const totalVotes = window.stores.reduce((sum, s) => sum + (s.votes || 0), 0);
 
       const votes = store.votes || 0;
-      const share = totalVotes > 0 ? (votes / totalVotes) : (1 / stores.length);
+      const share = totalVotes > 0 ? (votes / totalVotes) : (1 / (window.stores.length || 1));
       const monthlyCustomers = Math.round(DAILY_TRAFFIC * share * MONTHLY_DAYS);
 
       let costMult = 1.0;
-      if (isEventApplied && currentEvent && isStoreAffectedByEvent(store)) {
-        costMult = currentEvent.costMultiplier || 1.0;
+      if (isEventApplied && window.currentEvent && isStoreAffectedByEvent(store)) {
+        costMult = window.currentEvent.costMultiplier || 1.0;
       }
 
       const metrics = calculateEffectiveStoreMetrics(store, costMult);
@@ -1786,7 +1762,7 @@ const firebaseConfig = {
     }
 
     function calculateSimulationMetrics() {
-      const totalVotes = stores.reduce((sum, s) => sum + (s.votes || 0), 0);
+      const totalVotes = window.stores.reduce((sum, s) => sum + (s.votes || 0), 0);
 
       const placeDisplayNames = {
         gate: '学校エリア（久留米高校前）',
@@ -1795,10 +1771,10 @@ const firebaseConfig = {
         residential: '住宅エリア（南久留米）'
       };
 
-      const results = stores.map(store => {
-        const current = computeFinancialsForStore(store, !!currentEvent);
+      const results = window.stores.map(store => {
+        const current = computeFinancialsForStore(store, !!window.currentEvent);
         const base = computeFinancialsForStore(store, false);
-        const sharePercent = totalVotes > 0 ? Math.round(((store.votes || 0) / totalVotes) * 100) : Math.round(100 / stores.length);
+        const sharePercent = totalVotes > 0 ? Math.round(((store.votes || 0) / totalVotes) * 100) : Math.round(100 / (window.stores.length || 1));
 
         let feedbackText = '';
         if (store.reasons && store.reasons.length > 0) {
@@ -1828,7 +1804,7 @@ const firebaseConfig = {
       };
     }
 
-    function updateDashboard() {
+    window.updateDashboard = function() {
       const data = calculateSimulationMetrics();
       const kpiContainer = document.getElementById('sim-kpi-cards');
       const tableBody = document.getElementById('sim-financials-tbody');
@@ -1915,9 +1891,9 @@ const firebaseConfig = {
 
       renderCharts(data.results);
       renderEventImpactAnalysis();
-    }
+    };
 
-    function renderEventImpactAnalysis() {
+    window.renderEventImpactAnalysis = function() {
       const container = document.getElementById('event-analysis-content');
       const select = document.getElementById('analysis-store-select');
       if (!container || !select) return;
@@ -1945,18 +1921,18 @@ const firebaseConfig = {
         return `<span class="${color} font-mono font-extrabold">${sign}¥${num.toLocaleString()}</span>`;
       };
 
-      const eventName = currentEvent ? `${currentEvent.icon} ${currentEvent.title}` : '平常運転中（イベントなし）';
+      const eventName = window.currentEvent ? `${window.currentEvent.icon} ${window.currentEvent.title}` : '平常運転中（イベントなし）';
       const isAffected = isStoreAffectedByEvent(target);
 
       let reasonComment = '';
-      if (!currentEvent) {
+      if (!window.currentEvent) {
         reasonComment = '現在は平常運転中です。教員用管理者設定から突発イベントを発動すると、環境変化による収益・費用・営業利益の増減理由がここに分析表示されます。';
       } else if (!isAffected) {
-        reasonComment = `現在発動中の「${currentEvent.title}」の対象外エリア・店舗のため、この店舗への直接的な数値変動（影響額）はありませんでした。`;
+        reasonComment = `現在発動中の「${window.currentEvent.title}」の対象外エリア・店舗のため、この店舗への直接的な数値変動（影響額）はありませんでした。`;
       } else if (profitDiff > 0) {
-        reasonComment = `【好影響】「${currentEvent.title}」により顧客ニーズが合致！売上が ${formatDiff(revDiff)} 増加し、変動費の増加を上回る限界利益を生み出したため、営業利益が ${formatDiff(profitDiff)} 押し上げられました。`;
+        reasonComment = `【好影響】「${window.currentEvent.title}」により顧客ニーズが合致！売上が ${formatDiff(revDiff)} 増加し、変動費の増加を上回る限界利益を生み出したため、営業利益が ${formatDiff(profitDiff)} 押し上げられました。`;
       } else if (profitDiff < 0) {
-        reasonComment = `【悪影響】「${currentEvent.title}」の影響により、客足の鈍化または原材料高騰（変動費 ${formatDiff(varDiff)}）が直撃。固定費（¥${cur.fixedCost.toLocaleString()}）を賄いきれず利益が ${formatDiff(profitDiff)} 悪化しました。価格改定やメニューピボットが必要です。`;
+        reasonComment = `【悪影響】「${window.currentEvent.title}」の影響により、客足の鈍化または原材料高騰（変動費 ${formatDiff(varDiff)}）が直撃。固定費（¥${cur.fixedCost.toLocaleString()}）を賄いきれず利益が ${formatDiff(profitDiff)} 悪化しました。価格改定やメニューピボットが必要です。`;
       } else {
         reasonComment = `イベントによる収益と費用の増減が相殺され、営業利益の変動はありませんでした。`;
       }
@@ -2020,7 +1996,7 @@ const firebaseConfig = {
           </div>
         </div>
       `;
-    }
+    };
 
     function renderCharts(results) {
       const labels = results.map(r => `${r.teamName} (${r.storeName})`);
@@ -2084,18 +2060,18 @@ const firebaseConfig = {
       });
     }
 
-    // --- 10. 🔐 管理者・教員専用ロジック ---
-    function openAdminModal() {
+    // --- Admin Functions ---
+    window.openAdminModal = function() {
       document.getElementById('admin-pass-input').value = '';
       document.getElementById('admin-auth-modal').classList.remove('hidden');
       document.getElementById('admin-pass-input').focus();
-    }
+    };
 
-    function closeAdminAuthModal() {
+    window.closeAdminAuthModal = function() {
       document.getElementById('admin-auth-modal').classList.add('hidden');
-    }
+    };
 
-    function verifyAdminPassword() {
+    window.verifyAdminPassword = function() {
       const input = document.getElementById('admin-pass-input').value;
       if (input === adminPassword) {
         closeAdminAuthModal();
@@ -2104,11 +2080,11 @@ const firebaseConfig = {
         alert('パスワードが違います。');
         document.getElementById('admin-pass-input').focus();
       }
-    }
+    };
 
     function openAdminConsole() {
       const container = document.getElementById('admin-target-stores-list');
-      container.innerHTML = stores.map(store => `
+      container.innerHTML = window.stores.map(store => `
         <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
           <input type="checkbox" name="admin-target-store" value="${store.id}" class="rounded text-indigo-600 focus:ring-indigo-500">
           <span class="font-bold text-slate-800">${store.teamName}</span>
@@ -2117,8 +2093,8 @@ const firebaseConfig = {
       `).join('');
 
       const curText = document.getElementById('admin-current-event-text');
-      if (currentEvent) {
-        curText.innerHTML = `<span class="text-rose-600 font-bold">${currentEvent.icon} ${currentEvent.title}</span> (売上ブースト: ×${currentEvent.boostRate || 1.0} / 原価: ×${currentEvent.costMultiplier || 1.0})`;
+      if (window.currentEvent) {
+        curText.innerHTML = `<span class="text-rose-600 font-bold">${window.currentEvent.icon} ${window.currentEvent.title}</span> (売上ブースト: ×${window.currentEvent.boostRate || 1.0} / 原価: ×${window.currentEvent.costMultiplier || 1.0})`;
       } else {
         curText.textContent = '平常運転（イベント未発動）';
       }
@@ -2127,14 +2103,14 @@ const firebaseConfig = {
       lucide.createIcons();
     }
 
-    function closeAdminConsoleModal() {
+    window.closeAdminConsoleModal = function() {
       document.getElementById('admin-console-modal').classList.add('hidden');
-    }
+    };
 
-    function selectTargetPreset(preset) {
+    window.selectTargetPreset = function(preset) {
       const checkboxes = document.querySelectorAll('input[name="admin-target-store"]');
       checkboxes.forEach(cb => {
-        const store = stores.find(s => s.id === cb.value);
+        const store = window.stores.find(s => s.id === cb.value);
         if (preset === 'all') {
           cb.checked = true;
         } else if (store && store.location === preset) {
@@ -2143,9 +2119,9 @@ const firebaseConfig = {
           cb.checked = false;
         }
       });
-    }
+    };
 
-    function loadPresetToAdminForm(presetId) {
+    window.loadPresetToAdminForm = function(presetId) {
       const p = marketEventsMaster.find(e => e.id === presetId);
       if (!p) return;
 
@@ -2161,7 +2137,7 @@ const firebaseConfig = {
       } else if (p.id === 'rain') {
         selectTargetPreset('gate');
         document.querySelectorAll('input[name="admin-target-store"]').forEach(cb => {
-          const s = stores.find(st => st.id === cb.value);
+          const s = window.stores.find(st => st.id === cb.value);
           if (s && s.location === 'station') cb.checked = true;
         });
       } else if (p.id === 'buzz') {
@@ -2169,9 +2145,9 @@ const firebaseConfig = {
       } else {
         selectTargetPreset('all');
       }
-    }
+    };
 
-    function adminApplyCustomEvent() {
+    window.adminApplyCustomEvent = function() {
       const title = document.getElementById('admin-evt-title').value.trim();
       const desc = document.getElementById('admin-evt-desc').value.trim();
       const icon = document.getElementById('admin-evt-icon').value.trim() || '⚡';
@@ -2186,7 +2162,7 @@ const firebaseConfig = {
 
       const selectedStoreIds = Array.from(document.querySelectorAll('input[name="admin-target-store"]:checked')).map(cb => cb.value);
 
-      currentEvent = {
+      window.currentEvent = {
         id: 'admin_custom_' + Date.now(),
         title: title,
         icon: icon,
@@ -2199,33 +2175,41 @@ const firebaseConfig = {
 
       closeAdminConsoleModal();
       applyEventUI();
+      window.saveStorage();
       showToast(`管理者設定: 「${title}」を発動しました！`);
-    }
+    };
 
-    function applyEventUI() {
+    window.applyEventUI = function() {
       const voteBanner = document.getElementById('voting-event-alert');
-      voteBanner.classList.remove('hidden');
-      document.getElementById('voting-event-title').textContent = `${currentEvent.icon} ${currentEvent.title}`;
-      document.getElementById('voting-event-desc').textContent = currentEvent.desc;
-      document.getElementById('event-active-dot').classList.remove('hidden');
+      if (voteBanner && window.currentEvent) {
+        voteBanner.classList.remove('hidden');
+        document.getElementById('voting-event-title').textContent = `${window.currentEvent.icon} ${window.currentEvent.title}`;
+        document.getElementById('voting-event-desc').textContent = window.currentEvent.desc;
+      }
+      const pingDot = document.getElementById('event-active-dot');
+      if (pingDot && window.currentEvent) pingDot.classList.remove('hidden');
 
       updateDashboard();
-    }
+    };
 
-    function clearEvent() {
-      currentEvent = null;
-      document.getElementById('voting-event-alert').classList.add('hidden');
-      document.getElementById('event-active-dot').classList.add('hidden');
+    window.clearEvent = function() {
+      window.currentEvent = null;
+      const voteBanner = document.getElementById('voting-event-alert');
+      if (voteBanner) voteBanner.classList.add('hidden');
+      const pingDot = document.getElementById('event-active-dot');
+      if (pingDot) pingDot.classList.add('hidden');
+      
+      window.saveStorage();
       showToast('平常運転に戻しました');
       updateDashboard();
-    }
+    };
 
-    function adminResetEvent() {
+    window.adminResetEvent = function() {
       clearEvent();
       closeAdminConsoleModal();
-    }
+    };
 
-    function changeAdminPassword() {
+    window.changeAdminPassword = function() {
       const newP = document.getElementById('admin-new-pass').value.trim();
       if (newP.length < 4) {
         alert('パスワードは4文字以上で入力してください。');
@@ -2235,15 +2219,15 @@ const firebaseConfig = {
       localStorage.setItem('market_admin_pass', newP);
       document.getElementById('admin-new-pass').value = '';
       alert('管理者パスワードを更新しました。');
-    }
+    };
 
-    // --- 11. Header Controls ---
+    // --- Header Controls ---
     document.getElementById('btn-quick-sample').addEventListener('click', () => {
-      stores = JSON.parse(JSON.stringify(defaultSampleStores));
-      currentEvent = null;
-      selectedStoreForVote = null;
+      window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
+      window.currentEvent = null;
+      window.selectedStoreForVote = null;
       updateSelectedStorePreview();
-      saveStorage();
+      window.saveStorage();
       renderTeamsList();
       renderMapPins();
       renderVotingStores();
@@ -2253,12 +2237,12 @@ const firebaseConfig = {
     });
 
     document.getElementById('btn-reset-all').addEventListener('click', () => {
-      stores = [];
-      currentEvent = null;
-      selectedStoreForVote = null;
+      window.stores = [];
+      window.currentEvent = null;
+      window.selectedStoreForVote = null;
       updateSelectedStorePreview();
       cancelEdit();
-      saveStorage();
+      window.saveStorage();
       renderTeamsList();
       renderMapPins();
       renderVotingStores();
@@ -2267,7 +2251,7 @@ const firebaseConfig = {
       showToast('全データを初期化しました');
     });
 
-    // --- 12. Toast Feedback Utility ---
+    // --- Toast Utility ---
     let toastTimeout = null;
     function showToast(msg) {
       const toast = document.getElementById('toast');
