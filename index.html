@@ -108,19 +108,11 @@
         </div>
       </div>
 
-      <!-- Header Action Controls -->
+      <!-- Header Action Controls（管理者設定のみに集約） -->
       <div class="flex items-center gap-2">
-        <button onclick="openAdminModal()" class="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-sm">
-          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+        <button onclick="openAdminModal()" class="px-3.5 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-sm">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
           🔐 管理者設定
-        </button>
-        <button id="btn-quick-sample" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-blue-100 transition flex items-center gap-1.5 border border-white/15">
-          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
-          サンプル4店舗
-        </button>
-        <button id="btn-reset-all" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-rose-500/30 text-rose-200 transition flex items-center gap-1 border border-white/15">
-          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-          初期化
         </button>
       </div>
     </div>
@@ -710,6 +702,8 @@
       </div>
 
       <div class="p-6 overflow-y-auto custom-scrollbar space-y-6 text-xs">
+        
+        <!-- 現在のステータス -->
         <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between">
           <div>
             <span class="text-[10px] font-black uppercase text-amber-800">現在の発動状況</span>
@@ -720,6 +714,30 @@
           </button>
         </div>
 
+        <!-- NEW: 移動したマスターデータ操作エリア（サンプル読込・初期化） -->
+        <div class="p-4 bg-slate-100 border border-slate-300 rounded-2xl space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                <i data-lucide="database" class="w-4 h-4 text-indigo-600"></i>
+                データベース・マスター操作（教員専用）
+              </span>
+              <p class="text-[10px] text-slate-500 mt-0.5">生徒全員の画面の店舗・投票データを一括で制御します。</p>
+            </div>
+          </div>
+          <div class="flex gap-2 pt-1">
+            <button onclick="adminLoadSampleStores()" class="flex-1 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center justify-center gap-1.5 shadow-xs">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
+              サンプル4店舗を全員に一括適用
+            </button>
+            <button onclick="adminResetAllData()" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center justify-center gap-1">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              全データ完全初期化
+            </button>
+          </div>
+        </div>
+
+        <!-- プリセットイベント -->
         <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-2">
           <label class="block font-extrabold text-slate-800 text-xs">プリセットから選んで入力:</label>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -742,6 +760,7 @@
           </div>
         </div>
 
+        <!-- カスタムイベント作成フォーム -->
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
           <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
             <span class="text-base">⚡</span>
@@ -836,7 +855,7 @@
   <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
       <div class="flex items-center gap-2">
-        <span class="font-bold text-slate-700">MarketPBL 久留米エディション v5.3</span>
+        <span class="font-bold text-slate-700">MarketPBL 久留米エディション v5.4</span>
         <span>|</span>
         <span>教員専用管理者コントロール＆営業利益競争システム</span>
       </div>
@@ -1196,7 +1215,7 @@
           <div class="col-span-full border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center text-slate-400">
             <i data-lucide="store" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
             <p class="font-bold text-sm">登録店舗がありません</p>
-            <p class="text-xs mt-1">左のフォームから入力するか「サンプル4店舗」を押してください。</p>
+            <p class="text-xs mt-1">左のフォームから店舗情報を入力して追加してください。</p>
           </div>
         `;
         lucide.createIcons();
@@ -2107,6 +2126,42 @@
       document.getElementById('admin-console-modal').classList.add('hidden');
     };
 
+    // 管理者専用：サンプル4店舗の適用
+    window.adminLoadSampleStores = function() {
+      window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
+      window.currentEvent = null;
+      window.selectedStoreForVote = null;
+      updateSelectedStorePreview();
+      window.saveStorage();
+      renderTeamsList();
+      renderMapPins();
+      renderVotingStores();
+      updateDashboard();
+      clearEvent();
+      closeAdminConsoleModal();
+      showToast('サンプル4店舗データを全員に適用しました');
+    };
+
+    // 管理者専用：全データ完全初期化
+    window.adminResetAllData = function() {
+      if (!confirm('本当に全店舗・投票データを初期化しますか？クラウド上のデータも完全にリセットされます。')) {
+        return;
+      }
+      window.stores = [];
+      window.currentEvent = null;
+      window.selectedStoreForVote = null;
+      updateSelectedStorePreview();
+      cancelEdit();
+      window.saveStorage();
+      renderTeamsList();
+      renderMapPins();
+      renderVotingStores();
+      updateDashboard();
+      clearEvent();
+      closeAdminConsoleModal();
+      showToast('全データを初期化しました');
+    };
+
     window.selectTargetPreset = function(preset) {
       const checkboxes = document.querySelectorAll('input[name="admin-target-store"]');
       checkboxes.forEach(cb => {
@@ -2220,36 +2275,6 @@
       document.getElementById('admin-new-pass').value = '';
       alert('管理者パスワードを更新しました。');
     };
-
-    // --- Header Controls ---
-    document.getElementById('btn-quick-sample').addEventListener('click', () => {
-      window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
-      window.currentEvent = null;
-      window.selectedStoreForVote = null;
-      updateSelectedStorePreview();
-      window.saveStorage();
-      renderTeamsList();
-      renderMapPins();
-      renderVotingStores();
-      updateDashboard();
-      clearEvent();
-      showToast('久留米サンプル4店舗データを読み込みました');
-    });
-
-    document.getElementById('btn-reset-all').addEventListener('click', () => {
-      window.stores = [];
-      window.currentEvent = null;
-      window.selectedStoreForVote = null;
-      updateSelectedStorePreview();
-      cancelEdit();
-      window.saveStorage();
-      renderTeamsList();
-      renderMapPins();
-      renderVotingStores();
-      updateDashboard();
-      clearEvent();
-      showToast('全データを初期化しました');
-    });
 
     // --- Toast Utility ---
     let toastTimeout = null;
