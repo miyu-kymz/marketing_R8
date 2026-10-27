@@ -146,20 +146,20 @@
   <div class="bg-white border-b border-slate-200 sticky top-[58px] z-30 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto custom-scrollbar">
       <div class="flex space-x-1 sm:space-x-2 py-2">
-        <button class="nav-tab active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 bg-indigo-600 text-white shadow-sm transition" data-tab="tab-teams">
+        <button class="nav-tab active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 bg-indigo-600 text-white shadow-sm transition cursor-pointer" data-tab="tab-teams">
           <i data-lucide="store" class="w-4 h-4"></i>
           ① 4P店舗設定 (<span id="team-badge-count">0</span>)
         </button>
-        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5" data-tab="tab-map">
+        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-map">
           <i data-lucide="map" class="w-4 h-4 text-blue-500"></i>
           ② 久留米商圏マップ
         </button>
-        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5" data-tab="tab-voting">
+        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-voting">
           <i data-lucide="check-square" class="w-4 h-4 text-orange-500"></i>
           ③ 放課後投票（どこ行く？）
           <span id="vote-counter-badge" class="px-1.5 py-0.2 rounded-full bg-orange-100 text-orange-700 text-[10px] font-black">0票</span>
         </button>
-        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5" data-tab="tab-simulation">
+        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-simulation">
           <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i>
           ④ 月次損益分析＆ランキング
           <span id="event-active-dot" class="hidden w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
@@ -217,9 +217,9 @@
               </div>
             </div>
 
-            <!-- Product & Variable Costs (0円〜1円単位) -->
+            <!-- Product & Variable Costs -->
             <div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-2.5">
-              <span class="text-[10px] font-black text-indigo-700 uppercase tracking-wider block">1. Product & Price (価格と変動費設計: 0円〜1円単位)</span>
+              <span class="text-[10px] font-black text-indigo-700 uppercase tracking-wider block">1. Product & Price (価格と変動費設計: 0円〜1円刻み)</span>
               
               <div class="p-2.5 bg-white rounded-lg border border-indigo-200/70 space-y-2">
                 <div class="flex items-center justify-between">
@@ -233,17 +233,17 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                   <div>
-                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">販売価格 (0円以上・1円刻み)</label>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">販売価格 (0円以上・1円単位)</label>
                     <input type="number" id="price-point" value="30" min="0" max="10000" step="1" required oninput="calcMarginPreview()" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-xs font-mono font-bold">
                   </div>
                   <div>
-                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">変動費 (0円以上・1円刻み)</label>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-0.5">変動費 (0円以上・1円単位)</label>
                     <input type="number" id="unit-variable-cost" value="18" min="0" max="10000" step="1" required oninput="calcMarginPreview()" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-xs font-mono font-bold text-rose-600">
                   </div>
                 </div>
               </div>
 
-              <!-- Sub-products (0円〜1円単位) -->
+              <!-- Sub-products -->
               <div class="space-y-2">
                 <div class="flex items-center justify-between">
                   <span class="text-[11px] font-bold text-slate-700">追加商品・駄菓子ラインナップ（複数登録可）</span>
@@ -535,28 +535,28 @@
           <div>
             <label class="block text-[11px] font-bold text-slate-600 mb-1.5">クイック選択（クリックで理由に追加）:</label>
             <div class="flex flex-wrap gap-1.5">
-              <button type="button" onclick="appendReasonTag('数十円で買えてお小遣いピンチでも助かる！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+              <button type="button" onclick="appendReasonTag('数十円で買えてお小遣いピンチでも助かる！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
                 🪙 10円〜買えて神コスパ
               </button>
-              <button type="button" onclick="appendReasonTag('ボリューム満点で満腹になりそう！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+              <button type="button" onclick="appendReasonTag('ボリューム満点で満腹になりそう！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
                 🍖 ボリューム満点
               </button>
-              <button type="button" onclick="appendReasonTag('写真映え・パッケージが可愛くてSNSに載せたい！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+              <button type="button" onclick="appendReasonTag('写真映え・パッケージが可愛くてSNSに載せたい！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
                 📸 映え・可愛い
               </button>
-              <button type="button" onclick="appendReasonTag('静かでWi-Fiや電源があって長居・自習できる！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+              <button type="button" onclick="appendReasonTag('静かでWi-Fiや電源があって長居・自習できる！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
                 📖 静か・Wi-Fi完備
               </button>
-              <button type="button" onclick="appendReasonTag('学校近くやすぐ寄れる立地が最高！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+              <button type="button" onclick="appendReasonTag('学校近くやすぐ寄れる立地が最高！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
                 📍 近くて便利
               </button>
-              <button type="button" onclick="appendReasonTag('10円〜数十円の駄菓子をあれこれ選ぶのが楽しい！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs">
+              <button type="button" onclick="appendReasonTag('10円〜数十円の駄菓子をあれこれ選ぶのが楽しい！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
                 🍭 ついで買い・選べる楽しさ
               </button>
-              <button type="button" onclick="appendReasonTag('予算オーバーで買えるものがない！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition shadow-2xs">
+              <button type="button" onclick="appendReasonTag('予算オーバーで買えるものがない！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition shadow-2xs cursor-pointer">
                 💸 予算オーバー・高すぎる
               </button>
-              <button type="button" onclick="appendReasonTag('今の気分に合う店・メニューがないので直帰！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition shadow-2xs">
+              <button type="button" onclick="appendReasonTag('今の気分に合う店・メニューがないので直帰！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition shadow-2xs cursor-pointer">
                 🏠 行きたい店がない・直帰
               </button>
             </div>
@@ -929,224 +929,1216 @@
   </footer>
 
   <script>
-    // --- 管理者モーダル & ログイン処理 ---
-    window.openAdminModal = function() {
-      const inputEl = document.getElementById('admin-pass-input');
-      if (inputEl) inputEl.value = '';
-      document.getElementById('admin-auth-modal').classList.remove('hidden');
-      if (inputEl) inputEl.focus();
+    // --- State Variables ---
+    window.stores = [];
+    window.selectedPersona = 'sports';
+    window.selectedStoreForVote = null;
+    window.currentEvent = null;
+    window.currentMonth = 4;
+    window.noneVotes = 0;
+    window.noneReasons = [];
+    let adminPassword = localStorage.getItem('market_admin_pass') || 'teacher2026';
+    let chartMarketShareInstance = null;
+    let chartFinancialsInstance = null;
+
+    // --- Master Data ---
+    const monthSeasonsMaster = {
+      4: { name: '4月', title: '新学期・新歓・出会いの春商戦', icon: '🌸', desc: '新入生の部活探し＆友達づくりで買い食い・カフェ利用が急増！全店客数+15%の春特需！', impactLabel: '全店客数 +15% / 通常原価', globalTrafficMult: 1.15, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: {} },
+      5: { name: '5月', title: 'GW・初夏・高校総体予選', icon: '🌿', desc: '気温上昇で冷たいドリンク・スイーツ需要急増！部活生・休日ファミリー客が活発化。', impactLabel: 'カフェ・ドリンク客数 +25% / 通常原価', globalTrafficMult: 1.05, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: { cafe: 1.25 } },
+      6: { name: '6月', title: '梅雨・期末テスト期間', icon: '🌧️', desc: '雨天移動難で学校前・駅前至近に客集中。部活停止で自習派急増。湿気ロスで変動費+5%。', impactLabel: '自習特化 +20% / 変動費 +5%', globalTrafficMult: 0.95, varCostMult: 1.05, fixedUtilitiesMult: 1.0, categoryBoost: { study: 1.25 } },
+      7: { name: '7月', title: '期末明け猛暑・夏休み直前', icon: '☀️', desc: 'テスト明けの開放感で放課後の長居がピーク！猛暑で冷菓特需、エアコンで光熱費+15%。', impactLabel: '冷菓・軽食 +20% / 光熱費 +15%', globalTrafficMult: 1.10, varCostMult: 1.0, fixedUtilitiesMult: 1.15, categoryBoost: { cafe: 1.20, snack: 1.10 } },
+      8: { name: '8月', title: '夏休み・筑後川花火大会特需', icon: '🎆', desc: '高校休みで学校前は大打撃(-60%)！一方、西鉄久留米駅前・六ツ門は祭り特大特需(+50%)！', impactLabel: '駅前・商店街 +50% / 学校前 -60%', globalTrafficMult: 0.90, varCostMult: 1.10, fixedUtilitiesMult: 1.20, locationBoost: { station: 1.50, arcade: 1.40, gate: 0.40, residential: 0.85 } },
+      9: { name: '9月', title: '2学期開始・体育祭準備', icon: '🍁', desc: '体育祭準備で居残り生徒多数！部活生の食欲旺盛、がっつりフード・大容量ドリンク特需！', impactLabel: 'がっつり軽食 +25% / 通常固定費', globalTrafficMult: 1.15, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: { snack: 1.25 } }
     };
 
-    window.closeAdminAuthModal = function() {
-      document.getElementById('admin-auth-modal').classList.add('hidden');
-    };
+    const rentMap = { gate: 60000, station: 100000, arcade: 75000, residential: 40000 };
 
-    window.verifyAdminPassword = function() {
-      const inputEl = document.getElementById('admin-pass-input');
-      if (!inputEl) return;
-      const input = inputEl.value.trim();
-      const currentPass = (localStorage.getItem('market_admin_pass') || 'teacher2026').trim();
+    const personasMaster = [
+      { id: 'sports', name: '① 腹ペコ部活生', personName: '佐藤 陸 (高2・運動部)', icon: '⚽', budget: '350円〜500円' },
+      { id: 'trend', name: '② トレンド女子', personName: '高橋 結菜 (高2・文化部/帰宅部)', icon: '🧋', budget: '600円〜900円' },
+      { id: 'study', name: '③ 勉強・作業派', personName: '渡辺 蓮 (高3・進学希望/テスト前)', icon: '📖', budget: '400円〜600円' },
+      { id: 'cost', name: '④ コスパ節約派', personName: '田中 葵 (高1・お小遣い月3,000円)', icon: '👛', budget: '150円〜300円' },
+      { id: 'commuter', name: '⑤ 駅通勤者', personName: '木村 恵美 (30代・西鉄久留米利用の会社員)', icon: '💼', budget: '700円〜1,200円' },
+      { id: 'family', name: '⑥ 近隣ファミリー', personName: '山本 友香 (40代・小学生連れ)', icon: '👨‍👩‍👧', budget: '1,000円〜1,500円' }
+    ];
 
-      if (input === currentPass) {
-        closeAdminAuthModal();
-        openAdminConsole();
-        showToast('管理者としてログインしました');
-      } else {
-        alert('パスワードが違います。');
-        inputEl.focus();
-      }
-    };
+    const marketEventsMaster = [
+      { id: 'exam', title: '期末テスト1週間前突入！', icon: '📝', desc: '部活動停止で自習・作業需要が急増！運動部の買い食いは減少。', boostPersona: 'study', boostRate: 2.3, costMultiplier: 1.0, advice: '静寂環境・Wi-Fi完備の店舗に客が集中します。' },
+      { id: 'rain', title: 'ゲリラ豪雨・長雨警報発令！', icon: '🌧️', desc: '大雨のため移動困難！学校エリアと西鉄久留米駅前の至近店舗に客が集中。', boostLocations: ['gate', 'station'], boostRate: 1.85, costMultiplier: 1.0, advice: '至近立地が圧倒的有利。遠方の商店街や住宅街は集客対策が必要。' },
+      { id: 'buzz', title: '久留米の高校生リールで大バズ！', icon: '📱', desc: 'TikTok・リール動画で話題沸騰！映え系スイーツ・トレンド店舗に長蛇の列！', boostPersona: 'trend', boostRate: 2.6, costMultiplier: 1.0, advice: 'SNS販促とビジュアル重視の店舗の売上が爆発します。' },
+      { id: 'cost_up', title: '原材料・包材費 25%高騰！', icon: '📉', desc: '仕入材料費が25%急騰！全店舗の限界利益を直撃！', boostRate: 1.0, costMultiplier: 1.25, advice: '変動費の高い店舗は利益が激減します。客単価UPや付加価値ピボットが急務。' }
+    ];
 
-    function openAdminConsole() {
-      const container = document.getElementById('admin-target-stores-list');
-      if (container) {
-        container.innerHTML = (window.stores || []).map(store => `
-          <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
-            <input type="checkbox" name="admin-target-store" value="${store.id}" class="rounded text-indigo-600 focus:ring-indigo-500">
-            <span class="font-bold text-slate-800">${store.teamName}</span>
-            <span class="text-[10px] text-slate-500 truncate">(${store.storeName})</span>
-          </label>
-        `).join('');
-      }
+    const defaultSampleStores = [
+      { id: 'store_1', teamName: '1班 (男子運動部)', storeName: '爆盛からあげ天国 ましまし亭', icon: '🍗', category: 'snack', productName: 'メガ盛りから揚げ丼（特製マヨ付き）', quality: 'budget', vibe: 'chill', price: 450, unitVariableCost: 170, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'school_flyer', targetPersona: 'sports', votes: 14, reasons: ['部活終わりに久留米高校前で即買える！ボリュームがすごい！'], subProducts: [{ name: '山盛りフライドポテト', price: 180, unitVariableCost: 45 }, { name: '部活応援メガ烏龍茶', price: 120, unitVariableCost: 20 }] },
+      { id: 'store_2', teamName: '2班 (トレンド企画部)', storeName: 'Chill & Sweets アオハルスタンド', icon: '🍓', category: 'cafe', productName: 'いちご生クリームもちもちクレープ', quality: 'premium', vibe: 'aesthetic', price: 580, unitVariableCost: 185, location: 'arcade', fixedRent: 75000, fixedLabor: 50000, fixedUtilities: 25000, promo: 'sns_reels', targetPersona: 'trend', votes: 16, reasons: ['六ツ門・シティプラザ近くで友達と写真撮りながら喋るのに最高！'], subProducts: [{ name: 'グラデーションフルーツソーダ', price: 380, unitVariableCost: 75 }] },
+      { id: 'store_3', teamName: '3班 (特進サポート隊)', storeName: '自習＆フリードリンク Focus CAFE', icon: '📚', category: 'study', productName: '全席電源完備・静寂ブース＆珈琲バー', quality: 'standard', vibe: 'quiet', price: 400, unitVariableCost: 80, location: 'residential', fixedRent: 40000, fixedLabor: 30000, fixedUtilities: 25000, promo: 'word_of_mouth', targetPersona: 'study', votes: 9, reasons: ['南久留米の住宅街にあって静か。Wi-Fiと電源完備でテスト勉強に籠もれる。'], subProducts: [{ name: '集中持続ブドウ糖スナック', price: 150, unitVariableCost: 45 }] },
+      { id: 'store_4', teamName: '4班 (駅前ベンチャー)', storeName: '西鉄久留米駅前 STAND 5', icon: '🍙', category: 'convenience', productName: '焼きたてパリパリおにぎり', quality: 'budget', vibe: 'speed', price: 150, unitVariableCost: 60, location: 'station', fixedRent: 100000, fixedLabor: 55000, fixedUtilities: 20000, promo: 'coupon', targetPersona: 'cost', votes: 11, reasons: ['西鉄久留米駅で電車やバスを待つ間に100円台でサクッと買える！'], subProducts: [{ name: 'ジューシーからあげ棒', price: 130, unitVariableCost: 45 }] }
+    ];
 
-      const curText = document.getElementById('admin-current-event-text');
-      if (curText) {
-        if (window.currentEvent) {
-          curText.innerHTML = `<span class="text-rose-600 font-bold">${window.currentEvent.icon} ${window.currentEvent.title}</span> (売上ブースト: ×${window.currentEvent.boostRate || 1.0} / 原価: ×${window.currentEvent.costMultiplier || 1.0})`;
-        } else {
-          curText.textContent = '平常運転（突発イベント未発動）';
-        }
-      }
-
+    // --- App Init ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadLocalStorageBackup();
       renderMonthBanner();
-      document.getElementById('admin-console-modal').classList.remove('hidden');
+      renderTeamsList();
+      renderMapPins();
+      renderVotingPersonaButtons();
+      renderVotingStores();
+      updateDashboard();
       if (window.lucide) lucide.createIcons();
+    });
+
+    function loadLocalStorageBackup() {
+      const saved = localStorage.getItem('market_sim_stores_v5');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            window.stores = parsed;
+          } else {
+            window.stores = parsed.stores || [];
+            window.currentMonth = parsed.currentMonth || 4;
+            window.noneVotes = parsed.noneVotes || 0;
+            window.noneReasons = parsed.noneReasons || [];
+          }
+        } catch (e) {
+          window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
+        }
+      } else {
+        window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
+      }
     }
 
-    window.closeAdminConsoleModal = function() {
-      document.getElementById('admin-console-modal').classList.add('hidden');
-    };
+    // --- 月度・季節バナー描画 ---
+    window.renderMonthBanner = function() {
+      const m = window.currentMonth || 4;
+      const s = monthSeasonsMaster[m] || monthSeasonsMaster[4];
 
-    window.adminChangeMonth = function(delta) {
-      let m = (window.currentMonth || 4) + delta;
-      if (m < 4) m = 4;
-      if (m > 9) m = 9;
-      window.currentMonth = m;
-      renderMonthBanner();
-      window.saveStorage();
-      updateDashboard();
-      showToast(`営業月度を「${m}月」に進めました！`);
-    };
+      const badge = document.getElementById('header-month-badge');
+      if (badge) badge.textContent = `${s.name} (${s.title.slice(0, 5)})`;
+      const icon = document.getElementById('env-month-icon');
+      if (icon) icon.textContent = s.icon;
+      const title = document.getElementById('env-month-title');
+      if (title) title.textContent = `【${s.name}度：${s.title}】`;
+      const desc = document.getElementById('env-month-desc');
+      if (desc) desc.textContent = s.desc;
+      const impact = document.getElementById('env-month-impact');
+      if (impact) impact.textContent = s.impactLabel;
+      const heading = document.getElementById('sim-month-heading');
+      if (heading) heading.textContent = `${s.name}度`;
 
-    window.adminSetMonth = function(m) {
-      window.currentMonth = m;
-      renderMonthBanner();
-      window.saveStorage();
-      updateDashboard();
-      showToast(`営業月度を「${m}月」に設定しました！`);
-    };
+      const admM = document.getElementById('admin-current-month-display');
+      if (admM) admM.textContent = `${s.name}（${s.title}）`;
 
-    window.adminLoadSampleStores = function() {
-      window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
-      window.currentEvent = null;
-      window.noneVotes = 0;
-      window.noneReasons = [];
-      window.selectedStoreForVote = null;
-      updateSelectedStorePreview();
-      window.saveStorage();
-      renderTeamsList();
-      renderMapPins();
-      renderVotingStores();
-      updateDashboard();
-      clearEvent();
-      closeAdminConsoleModal();
-      showToast('サンプル4店舗データを全員に適用しました');
-    };
-
-    window.adminResetAllData = function() {
-      if (!confirm('本当に全店舗・投票データを初期化しますか？クラウド上のデータも完全にリセットされます。')) return;
-      window.stores = [];
-      window.currentEvent = null;
-      window.currentMonth = 4;
-      window.noneVotes = 0;
-      window.noneReasons = [];
-      window.selectedStoreForVote = null;
-      updateSelectedStorePreview();
-      cancelEdit();
-      window.saveStorage();
-      renderMonthBanner();
-      renderTeamsList();
-      renderMapPins();
-      renderVotingStores();
-      updateDashboard();
-      clearEvent();
-      closeAdminConsoleModal();
-      showToast('全データを初期化し、4月にリセットしました');
-    };
-
-    window.selectTargetPreset = function(preset) {
-      const checkboxes = document.querySelectorAll('input[name="admin-target-store"]');
-      checkboxes.forEach(cb => {
-        const store = (window.stores || []).find(s => s.id === cb.value);
-        if (preset === 'all') {
-          cb.checked = true;
-        } else if (store && store.location === preset) {
-          cb.checked = true;
+      document.querySelectorAll('.admin-month-btn').forEach(btn => {
+        if (parseInt(btn.getAttribute('data-m'), 10) === m) {
+          btn.classList.add('bg-amber-400', 'text-slate-950');
+          btn.classList.remove('text-white');
         } else {
-          cb.checked = false;
+          btn.classList.remove('bg-amber-400', 'text-slate-950');
+          btn.classList.add('text-white');
         }
       });
     };
 
-    window.loadPresetToAdminForm = function(presetId) {
-      const p = marketEventsMaster.find(e => e.id === presetId);
-      if (!p) return;
-      document.getElementById('admin-evt-icon').value = p.icon;
-      document.getElementById('admin-evt-title').value = p.title;
-      document.getElementById('admin-evt-desc').value = p.desc;
-      document.getElementById('admin-evt-boost').value = p.boostRate || 1.0;
-      document.getElementById('admin-evt-costmult').value = p.costMultiplier || 1.0;
-      document.getElementById('admin-evt-advice').value = p.advice;
+    function toggleCustomField(selectId, inputId) {
+      const select = document.getElementById(selectId);
+      const input = document.getElementById(inputId);
+      if (select && input) {
+        if (select.value === '__custom__') {
+          input.classList.remove('hidden');
+          input.focus();
+        } else {
+          input.classList.add('hidden');
+        }
+      }
+    }
 
-      if (p.id === 'exam') selectTargetPreset('all');
-      else if (p.id === 'rain') selectTargetPreset('gate');
-      else if (p.id === 'buzz') selectTargetPreset('arcade');
-      else selectTargetPreset('all');
-    };
+    function syncLocationRent() {
+      const loc = document.getElementById('place-location').value;
+      document.getElementById('fc-rent').value = rentMap[loc] || 60000;
+    }
 
-    window.adminApplyCustomEvent = function() {
-      const title = document.getElementById('admin-evt-title').value.trim();
-      const desc = document.getElementById('admin-evt-desc').value.trim();
-      const icon = document.getElementById('admin-evt-icon').value.trim() || '⚡';
-      const boostRate = parseFloat(document.getElementById('admin-evt-boost').value) || 1.0;
-      const costMultiplier = parseFloat(document.getElementById('admin-evt-costmult').value) || 1.0;
-      const advice = document.getElementById('admin-evt-advice').value.trim() || '市場の変化を観察し、4Pの修正案を考えましょう。';
+    function calcMarginPreview() {
+      const p = parseInt(document.getElementById('price-point').value, 10) || 0;
+      const v = parseInt(document.getElementById('unit-variable-cost').value, 10) || 0;
+      const margin = p - v;
+      const ratio = p > 0 ? Math.round((margin / p) * 100) : 0;
+      document.getElementById('main-margin-badge').textContent = `限界利益: ¥${margin.toLocaleString()} (${ratio}%)`;
+    }
 
-      if (!title) {
-        alert('イベント名を入力してください。');
-        return;
+    // --- 計算ヘルパー ---
+    function calculateEffectiveStoreMetrics(store, costMultiplier = 1.0) {
+      const CROSS_SELL_RATE = 0.35;
+      const m = window.currentMonth || 4;
+      const season = (typeof monthSeasonsMaster !== 'undefined' && monthSeasonsMaster[m]) ? monthSeasonsMaster[m] : { varCostMult: 1.0, fixedUtilitiesMult: 1.0 };
+
+      const totalVarMult = (Number(costMultiplier) || 1.0) * (season.varCostMult || 1.0);
+      const p = Number(store?.price) || 0;
+      let effectivePrice = p;
+      let effectiveVarCost = (Number(store?.unitVariableCost) || 0) * totalVarMult;
+
+      const subs = Array.isArray(store?.subProducts) ? store.subProducts : [];
+      if (subs.length > 0) {
+        const avgSubPrice = subs.reduce((sum, sp) => sum + (Number(sp?.price) || 0), 0) / subs.length;
+        const avgSubVarCost = (subs.reduce((sum, sp) => sum + (Number(sp?.unitVariableCost) || 0), 0) / subs.length) * totalVarMult;
+        effectivePrice += Math.round(avgSubPrice * CROSS_SELL_RATE);
+        effectiveVarCost += Math.round(avgSubVarCost * CROSS_SELL_RATE);
       }
 
-      const selectedStoreIds = Array.from(document.querySelectorAll('input[name="admin-target-store"]:checked')).map(cb => cb.value);
+      const unitContributionMargin = effectivePrice - effectiveVarCost;
+      const loc = store?.location || 'gate';
+      const rent = Number(store?.fixedRent) || (typeof rentMap !== 'undefined' ? (rentMap[loc] || 60000) : 60000);
+      const labor = Number(store?.fixedLabor) || 40000;
+      const util = (Number(store?.fixedUtilities) || 20000) * (season.fixedUtilitiesMult || 1.0);
 
-      window.currentEvent = {
-        id: 'admin_custom_' + Date.now(),
-        title: title,
-        icon: icon,
-        desc: desc || '外部環境に急激な市場変動が発生しました。',
-        boostRate: boostRate,
-        costMultiplier: costMultiplier,
-        targetStoreIds: selectedStoreIds.length > 0 ? selectedStoreIds : null,
-        advice: advice
+      return {
+        effectivePrice: Math.round(effectivePrice),
+        effectiveVarCost: Math.round(effectiveVarCost),
+        unitContributionMargin: Math.round(unitContributionMargin),
+        totalFixedCost: Math.round(rent + labor + util)
+      };
+    }
+
+    // --- 店舗一覧描画（編集・削除アイコン付き＆完全防御） ---
+    window.renderTeamsList = function() {
+      const container = document.getElementById('teams-container');
+      const badge = document.getElementById('team-badge-count');
+      if (!container) return;
+
+      const storesList = Array.isArray(window.stores) ? window.stores : [];
+      if (badge) badge.textContent = storesList.length;
+
+      const placeLabels = {
+        gate: '学校エリア（久留米高校前周辺）',
+        station: '駅前・オフィスエリア（西鉄久留米）',
+        arcade: '商店街エリア（六ツ門・一番街）',
+        residential: '住宅エリア（南久留米）'
       };
 
-      closeAdminConsoleModal();
-      applyEventUI();
-      window.saveStorage();
-      showToast(`管理者設定: 「${title}」を発動しました！`);
-    };
-
-    window.applyEventUI = function() {
-      const voteBanner = document.getElementById('voting-event-alert');
-      if (voteBanner && window.currentEvent) {
-        voteBanner.classList.remove('hidden');
-        document.getElementById('voting-event-title').textContent = `${window.currentEvent.icon} ${window.currentEvent.title}`;
-        document.getElementById('voting-event-desc').textContent = window.currentEvent.desc;
-      }
-      const pingDot = document.getElementById('event-active-dot');
-      if (pingDot && window.currentEvent) pingDot.classList.remove('hidden');
-
-      updateDashboard();
-    };
-
-    window.clearEvent = function() {
-      window.currentEvent = null;
-      const voteBanner = document.getElementById('voting-event-alert');
-      if (voteBanner) voteBanner.classList.add('hidden');
-      const pingDot = document.getElementById('event-active-dot');
-      if (pingDot) pingDot.classList.add('hidden');
-      
-      window.saveStorage();
-      showToast('突発イベントを解除しました');
-      updateDashboard();
-    };
-
-    window.adminResetEvent = function() {
-      clearEvent();
-      closeAdminConsoleModal();
-    };
-
-    window.changeAdminPassword = function() {
-      const newP = document.getElementById('admin-new-pass').value.trim();
-      if (newP.length < 4) {
-        alert('パスワードは4文字以上で入力してください。');
+      if (storesList.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center text-slate-400">
+            <i data-lucide="store" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+            <p class="font-bold text-sm">登録店舗がありません</p>
+            <p class="text-xs mt-1">左のフォームから店舗情報を入力して追加してください。</p>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons();
         return;
       }
-      adminPassword = newP;
-      localStorage.setItem('market_admin_pass', newP);
-      document.getElementById('admin-new-pass').value = '';
-      alert('管理者パスワードを更新しました。');
+
+      container.innerHTML = storesList.map(store => {
+        const teamName = store?.teamName || '無所属チーム';
+        const storeName = store?.storeName || '名称未設定';
+        const icon = store?.icon || '🏪';
+        const prodName = store?.productName || '主力商品未設定';
+        const price = Number(store?.price) || 0;
+        const varCost = Number(store?.unitVariableCost) || 0;
+        const locationKey = store?.location || 'gate';
+        const votes = Number(store?.votes) || 0;
+        const subProducts = Array.isArray(store?.subProducts) ? store.subProducts : [];
+
+        let fixedCostDisplay = 120000;
+        try {
+          const metrics = calculateEffectiveStoreMetrics(store);
+          fixedCostDisplay = metrics.totalFixedCost;
+        } catch(err) {}
+
+        return `
+          <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 hover:shadow-md transition relative flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 truncate max-w-[200px]">
+                  ${teamName}
+                </span>
+                <div class="flex items-center gap-1">
+                  <!-- 編集ボタン -->
+                  <button type="button" onclick="editStore('${store.id}')" title="この店舗を編集" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition cursor-pointer">
+                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <!-- 削除ボタン -->
+                  <button type="button" onclick="deleteStore('${store.id}')" title="この店舗を削除" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">${icon}</span>
+                <div class="min-w-0 flex-1">
+                  <h3 class="font-bold text-slate-900 text-sm leading-tight truncate">${storeName}</h3>
+                  <p class="text-[11px] text-slate-500 line-clamp-1">★主力: ${prodName}</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-1 bg-slate-50 p-2 rounded-xl text-[10px] text-slate-600 mb-2 border border-slate-100">
+                <div><span class="text-slate-400 block">主力価格</span><strong>¥${price.toLocaleString()}</strong></div>
+                <div><span class="text-rose-500 block">変動費/個</span><strong class="text-rose-600">¥${varCost.toLocaleString()}</strong></div>
+                <div><span class="text-indigo-500 block">月額固定費</span><strong class="text-indigo-700">¥${fixedCostDisplay.toLocaleString()}</strong></div>
+              </div>
+
+              ${subProducts.length > 0 ? `
+                <div class="mb-2">
+                  <div class="flex flex-wrap gap-1">
+                    ${subProducts.map(sp => `
+                      <span class="text-[9px] bg-indigo-50 text-indigo-700 font-medium px-1.5 py-0.5 rounded border border-indigo-100/60 truncate max-w-[120px]">
+                        + ${sp?.name || 'サイド'} (¥${Number(sp?.price) || 0})
+                      </span>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : `
+                <div class="mb-2 text-[10px] text-slate-400 italic">追加サブメニューなし</div>
+              `}
+
+              <div class="text-[11px] text-slate-500 space-y-0.5">
+                <div><span class="text-slate-400">立地:</span> <strong>${placeLabels[locationKey] || locationKey}</strong></div>
+                <div><span class="text-slate-400">得票数:</span> <strong class="text-orange-600 font-black">${votes} 票</strong></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      try {
+        if (window.lucide && typeof lucide.createIcons === 'function') {
+          lucide.createIcons();
+        }
+      } catch(e) {}
     };
+
+    // --- Sub-Products Form Management ---
+    const subproductsContainer = document.getElementById('subproducts-container');
+    document.getElementById('btn-add-subproduct').addEventListener('click', () => addSubProductRow());
+
+    function addSubProductRow(name = '', price = 30, unitVariableCost = 15) {
+      const row = document.createElement('div');
+      row.className = 'subproduct-item flex items-center gap-1.5 bg-white p-1.5 rounded-lg border border-indigo-100 shadow-2xs';
+      row.innerHTML = `
+        <input type="text" placeholder="商品名 (例: 10円チョコ)" value="${name}" class="sub-name flex-1 px-2 py-1 rounded border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500" required>
+        <div class="flex items-center gap-0.5">
+          <span class="text-[9px] text-slate-400">¥</span>
+          <input type="number" placeholder="価格" value="${price}" min="0" max="10000" step="1" class="sub-price w-16 px-1.5 py-1 rounded border border-slate-200 text-xs font-mono font-bold" required>
+        </div>
+        <div class="flex items-center gap-0.5">
+          <input type="number" placeholder="変動費" value="${unitVariableCost}" min="0" max="10000" step="1" class="sub-var-cost w-14 px-1 py-1 rounded border border-slate-200 text-xs font-mono text-rose-600 font-bold" required>
+          <span class="text-[9px] text-slate-400">変</span>
+        </div>
+        <button type="button" class="btn-remove-sub p-1 text-slate-300 hover:text-rose-500 transition rounded cursor-pointer">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      `;
+      row.querySelector('.btn-remove-sub').addEventListener('click', () => row.remove());
+      subproductsContainer.appendChild(row);
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function getSubProductsFromForm() {
+      const rows = subproductsContainer.querySelectorAll('.subproduct-item');
+      const items = [];
+      rows.forEach(r => {
+        const name = r.querySelector('.sub-name').value.trim();
+        const price = parseInt(r.querySelector('.sub-price').value, 10) || 0;
+        const unitVariableCost = parseInt(r.querySelector('.sub-var-cost').value, 10) || 0;
+        if (name) items.push({ name, price, unitVariableCost });
+      });
+      return items;
+    }
+
+    function populateSubProductsToForm(items = []) {
+      subproductsContainer.innerHTML = '';
+      items.forEach(item => addSubProductRow(item.name, item.price, item.unitVariableCost));
+    }
+
+    // --- 店舗登録 & 編集保存 ---
+    document.getElementById('store-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('edit-team-id').value;
+      const subProducts = getSubProductsFromForm();
+
+      const vibeSelect = document.getElementById('prod-vibe').value;
+      const vibeCustom = document.getElementById('prod-vibe-custom').value.trim();
+      const finalVibe = vibeSelect === '__custom__' ? (vibeCustom || 'その他') : vibeSelect;
+
+      const promoSelect = document.getElementById('promo-channel').value;
+      const promoCustom = document.getElementById('promo-channel-custom').value.trim();
+      const finalPromo = promoSelect === '__custom__' ? (promoCustom || 'その他') : promoSelect;
+
+      const personaSelect = document.getElementById('target-persona').value;
+      const personaCustom = document.getElementById('target-persona-custom').value.trim();
+      const finalPersona = personaSelect === '__custom__' ? (personaCustom || 'その他') : personaSelect;
+
+      const storeData = {
+        id: editId || 'store_' + Date.now(),
+        teamName: document.getElementById('team-name').value.trim() || '未設定チーム',
+        storeName: document.getElementById('store-name').value.trim() || '未設定店舗',
+        icon: document.getElementById('store-icon').value.trim() || '🏪',
+        category: document.getElementById('store-category').value,
+        productName: document.getElementById('prod-name').value.trim() || '看板商品',
+        quality: document.getElementById('prod-quality').value,
+        vibe: finalVibe,
+        price: parseInt(document.getElementById('price-point').value, 10) || 0,
+        unitVariableCost: parseInt(document.getElementById('unit-variable-cost').value, 10) || 0,
+        location: document.getElementById('place-location').value,
+        fixedRent: parseInt(document.getElementById('fc-rent').value, 10) || 60000,
+        fixedLabor: parseInt(document.getElementById('fc-labor').value, 10) || 40000,
+        fixedUtilities: parseInt(document.getElementById('fc-utilities').value, 10) || 20000,
+        promo: finalPromo,
+        targetPersona: finalPersona,
+        votes: 0,
+        reasons: [],
+        subProducts: subProducts
+      };
+
+      if (!window.stores) window.stores = [];
+
+      if (editId) {
+        const idx = window.stores.findIndex(s => s.id === editId);
+        if (idx !== -1) {
+          storeData.votes = window.stores[idx].votes || 0;
+          storeData.reasons = window.stores[idx].reasons || [];
+          window.stores[idx] = storeData;
+        }
+        cancelEdit();
+        showToast(`「${storeData.storeName}」を更新しました`);
+      } else {
+        window.stores.push(storeData);
+        showToast(`「${storeData.storeName}」を新規登録しました`);
+      }
+
+      window.saveStorage();
+      renderTeamsList();
+      renderMapPins();
+      renderVotingStores();
+      updateDashboard();
+    });
+
+    // --- 店舗編集の呼び出し ---
+    window.editStore = function(id) {
+      const s = (window.stores || []).find(item => item.id === id);
+      if (!s) return;
+
+      document.getElementById('edit-team-id').value = s.id;
+      document.getElementById('team-name').value = s.teamName || '';
+      document.getElementById('store-name').value = s.storeName || '';
+      document.getElementById('store-icon').value = s.icon || '🏪';
+      document.getElementById('store-category').value = s.category || 'dagashi';
+      document.getElementById('prod-name').value = s.productName || '';
+      document.getElementById('prod-quality').value = s.quality || 'standard';
+
+      const standardVibes = ['nostalgic', 'chill', 'aesthetic', 'quiet', 'speed'];
+      const vibeSelect = document.getElementById('prod-vibe');
+      const vibeCustom = document.getElementById('prod-vibe-custom');
+      if (standardVibes.includes(s.vibe)) {
+        vibeSelect.value = s.vibe;
+        vibeCustom.classList.add('hidden');
+        vibeCustom.value = '';
+      } else {
+        vibeSelect.value = '__custom__';
+        vibeCustom.classList.remove('hidden');
+        vibeCustom.value = s.vibe || '';
+      }
+
+      document.getElementById('price-point').value = s.price !== undefined ? s.price : 30;
+      document.getElementById('unit-variable-cost').value = s.unitVariableCost !== undefined ? s.unitVariableCost : 18;
+      document.getElementById('place-location').value = s.location || 'gate';
+      document.getElementById('fc-rent').value = s.fixedRent || rentMap[s.location || 'gate'];
+      document.getElementById('fc-labor').value = s.fixedLabor || 40000;
+      document.getElementById('fc-utilities').value = s.fixedUtilities || 20000;
+
+      calcMarginPreview();
+      populateSubProductsToForm(s.subProducts || []);
+
+      document.getElementById('btn-submit-text').textContent = '店舗情報を更新';
+      document.getElementById('btn-cancel-edit').classList.remove('hidden');
+      document.getElementById('editing-indicator').classList.remove('hidden');
+
+      switchTab('tab-teams');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // --- 店舗編集のキャンセル ---
+    window.cancelEdit = function() {
+      document.getElementById('edit-team-id').value = '';
+      document.getElementById('btn-submit-text').textContent = '店舗をマーケットに追加';
+      document.getElementById('btn-cancel-edit').classList.add('hidden');
+      document.getElementById('editing-indicator').classList.add('hidden');
+      document.getElementById('store-form').reset();
+      document.getElementById('prod-vibe-custom').classList.add('hidden');
+      document.getElementById('promo-channel-custom').classList.add('hidden');
+      document.getElementById('target-persona-custom').classList.add('hidden');
+      syncLocationRent();
+      calcMarginPreview();
+      subproductsContainer.innerHTML = '';
+    };
+
+    // --- 店舗の削除 ---
+    window.deleteStore = function(id) {
+      const st = (window.stores || []).find(s => s.id === id);
+      const name = st ? st.storeName : 'この店舗';
+      if (!confirm(`「${name}」を本当に削除しますか？\n※全員の画面から削除されます。`)) {
+        return;
+      }
+
+      window.stores = (window.stores || []).filter(s => s.id !== id);
+      if (window.selectedStoreForVote === id) {
+        window.selectedStoreForVote = null;
+        updateSelectedStorePreview();
+      }
+      if (document.getElementById('edit-team-id').value === id) {
+        cancelEdit();
+      }
+      window.saveStorage();
+      renderTeamsList();
+      renderMapPins();
+      renderVotingStores();
+      updateDashboard();
+      showToast(`「${name}」を削除しました`);
+    };
+
+    // --- タブ切り替え ---
+    window.switchTab = function(targetTabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+
+      const activeSection = document.getElementById(targetTabId);
+      if (activeSection) activeSection.classList.remove('hidden');
+
+      const activeBtn = document.querySelector(`[data-tab="${targetTabId}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-600');
+      }
+
+      if (targetTabId === 'tab-simulation') {
+        updateDashboard();
+      } else if (targetTabId === 'tab-voting') {
+        renderVotingStores();
+      } else if (targetTabId === 'tab-map') {
+        renderMapPins();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (window.lucide) lucide.createIcons();
+    };
+
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-tab');
+        switchTab(tabId);
+      });
+    });
+
+    // --- マップ描画 ---
+    window.renderMapPins = function() {
+      ['station', 'gate', 'arcade', 'residential'].forEach(zone => {
+        const el = document.getElementById(`map-zone-${zone}`);
+        if (el) el.innerHTML = '';
+      });
+
+      (window.stores || []).forEach(store => {
+        const loc = store.location || 'gate';
+        const zoneEl = document.getElementById(`map-zone-${loc}`);
+        if (zoneEl) {
+          const metrics = calculateEffectiveStoreMetrics(store);
+          const item = document.createElement('div');
+          item.className = 'bg-white px-2 py-1 rounded-lg shadow-sm border border-slate-300 text-[11px] flex items-center justify-between font-bold text-slate-800';
+          item.innerHTML = `
+            <span class="truncate max-w-[130px] flex items-center gap-1">
+              <span>${store.icon || '🏪'}</span>
+              <span>${store.storeName || ''}</span>
+            </span>
+            <span class="text-[10px] font-mono text-indigo-600 font-bold bg-indigo-50 px-1 py-0.2 rounded">客単価¥${metrics.effectivePrice}</span>
+          `;
+          zoneEl.appendChild(item);
+        }
+      });
+    };
+
+    // --- 投票画面 ---
+    window.renderVotingPersonaButtons = function() {
+      const container = document.getElementById('voting-persona-buttons');
+      if (!container) return;
+      container.innerHTML = personasMaster.map(p => {
+        const isSelected = p.id === window.selectedPersona;
+        return `
+          <button type="button" onclick="selectVotingPersona('${p.id}')" class="p-2.5 rounded-xl border-2 transition text-center flex flex-col items-center justify-center cursor-pointer ${
+            isSelected ? 'border-orange-500 bg-orange-50 text-orange-950 font-black shadow-xs' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:border-orange-300'
+          }">
+            <span class="text-xl mb-0.5">${p.icon}</span>
+            <span class="text-[11px] font-bold truncate max-w-full">${p.name}</span>
+            <span class="text-[9px] text-slate-400">${p.budget}</span>
+          </button>
+        `;
+      }).join('');
+    };
+
+    window.selectVotingPersona = function(pId) {
+      window.selectedPersona = pId;
+      renderVotingPersonaButtons();
+      const p = personasMaster.find(item => item.id === pId);
+      if (p) showToast(`ペルソナ「${p.name}」を選択しました`);
+    };
+
+    window.selectStoreForVote = function(storeId) {
+      window.selectedStoreForVote = storeId;
+      renderVotingStores();
+      updateSelectedStorePreview();
+
+      const step3El = document.getElementById('voting-selected-store-preview');
+      if (step3El) step3El.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    function updateSelectedStorePreview() {
+      const previewEl = document.getElementById('voting-selected-store-preview');
+      if (!previewEl) return;
+
+      if (!window.selectedStoreForVote) {
+        previewEl.innerHTML = `選択中の店舗: <span class="text-indigo-600 font-black">（STEP 2で選択してください）</span>`;
+        return;
+      }
+
+      if (window.selectedStoreForVote === '__none__') {
+        previewEl.innerHTML = `選択中の店舗: <span class="text-rose-600 font-black text-sm">🏠 該当なし（どこにも寄らず直帰）</span>`;
+        return;
+      }
+
+      const st = (window.stores || []).find(s => s.id === window.selectedStoreForVote);
+      if (st) {
+        previewEl.innerHTML = `選択中の店舗: <span class="text-orange-600 font-black text-sm">${st.icon || '🏪'} ${st.storeName} (${st.teamName})</span>`;
+      }
+    }
+
+    window.appendReasonTag = function(tagText) {
+      const textarea = document.getElementById('voting-reason-input');
+      if (!textarea) return;
+      if (textarea.value.trim() === '') {
+        textarea.value = tagText;
+      } else {
+        textarea.value += ' ' + tagText;
+      }
+      textarea.focus();
+    };
+
+    window.submitFinalVoteWithReason = function() {
+      if (!window.selectedStoreForVote) {
+        alert('STEP 2 で投票したいお店（または「該当なし」）を選択してください！');
+        return;
+      }
+
+      const reasonText = document.getElementById('voting-reason-input').value.trim();
+
+      if (window.selectedStoreForVote === '__none__') {
+        const finalReason = reasonText || '予算に合う店や魅力的なメニューがなかったため直帰';
+        window.noneVotes = (window.noneVotes || 0) + 1;
+        if (!window.noneReasons) window.noneReasons = [];
+        window.noneReasons.unshift(finalReason);
+
+        window.saveStorage();
+        renderVotingStores();
+        updateDashboard();
+
+        document.getElementById('voting-reason-input').value = '';
+        showToast('「該当なし（直帰）」への投票が完了しました');
+        return;
+      }
+
+      const store = (window.stores || []).find(s => s.id === window.selectedStoreForVote);
+      if (!store) return;
+
+      const finalReason = reasonText || '価格・メニュー構成・立地がペルソナのニーズに合致していたため';
+      store.votes = (store.votes || 0) + 1;
+      if (!store.reasons) store.reasons = [];
+      store.reasons.unshift(finalReason);
+
+      window.saveStorage();
+      renderVotingStores();
+      renderTeamsList();
+      updateDashboard();
+
+      document.getElementById('voting-reason-input').value = '';
+      showToast(`「${store.storeName}」へ理由付き投票が完了しました！`);
+    };
+
+    window.renderVotingStores = function() {
+      const container = document.getElementById('voting-stores-grid');
+      if (!container) return;
+
+      const storesList = window.stores || [];
+      const storesVotes = storesList.reduce((sum, s) => sum + (s.votes || 0), 0);
+      const totalVotes = storesVotes + (window.noneVotes || 0);
+
+      const countEl = document.getElementById('voting-total-count');
+      const badgeEl = document.getElementById('vote-counter-badge');
+      if (countEl) countEl.textContent = totalVotes;
+      if (badgeEl) badgeEl.textContent = `${totalVotes}票`;
+
+      const locationLabels = {
+        gate: '学校エリア（久留米高校前周辺）',
+        station: '駅前・オフィスエリア（西鉄久留米）',
+        arcade: '商店街エリア（六ツ門・一番街）',
+        residential: '住宅エリア（南久留米）'
+      };
+
+      const promoLabels = {
+        word_of_mouth: '友達紹介口コミ',
+        school_flyer: '校門前のチラシ配布',
+        coupon: '学割クーポン配布',
+        sns_reels: 'TikTok/リール動画拡散'
+      };
+
+      let html = '';
+
+      html += storesList.map(store => {
+        const sharePercent = totalVotes > 0 ? Math.round(((store.votes || 0) / totalVotes) * 100) : 0;
+        const subProducts = Array.isArray(store.subProducts) ? store.subProducts : [];
+        const isSelected = window.selectedStoreForVote === store.id;
+
+        return `
+          <div class="bg-white rounded-3xl p-5 shadow-sm border-2 transition flex flex-col justify-between ${
+            isSelected ? 'border-orange-500 ring-2 ring-orange-300 bg-orange-50/20' : 'border-slate-200 hover:border-slate-300'
+          }">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-700 truncate max-w-[150px]">
+                  ${store.teamName || '無所属'}
+                </span>
+                <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full truncate max-w-[180px]">
+                  📍 ${locationLabels[store.location] || store.location}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-3 my-2">
+                <div class="w-12 h-12 rounded-2xl bg-amber-100/80 border border-amber-200 flex items-center justify-center text-2xl shrink-0">
+                  ${store.icon || '🏪'}
+                </div>
+                <div class="min-w-0">
+                  <h3 class="font-black text-base text-slate-900 leading-tight truncate">${store.storeName || ''}</h3>
+                  <p class="text-[11px] font-bold text-orange-600 mt-0.5 line-clamp-1">★看板: ${store.productName || ''}</p>
+                </div>
+              </div>
+
+              <div class="bg-amber-50/50 rounded-2xl p-3 my-3 border border-orange-100 space-y-2 text-[11px]">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-600 font-bold">看板メニュー価格:</span>
+                  <span class="font-mono font-black text-rose-600 text-xs">¥${(store.price || 0).toLocaleString()}</span>
+                </div>
+
+                ${subProducts.length > 0 ? `
+                  <div class="pt-1.5 border-t border-amber-200/60">
+                    <span class="text-[10px] font-bold text-slate-500 block mb-1">サイド・駄菓子セット:</span>
+                    <div class="flex flex-wrap gap-1">
+                      ${subProducts.map(sp => `
+                        <span class="text-[10px] bg-white text-slate-700 font-bold px-2 py-0.5 rounded-md border border-amber-200/80 shadow-2xs">
+                          ${sp.name} <span class="text-orange-600 font-mono">¥${sp.price}</span>
+                        </span>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+
+                <div class="flex items-center justify-between pt-1 border-t border-amber-200/40 text-[10px]">
+                  <span class="text-slate-400 font-medium">販促:</span>
+                  <span class="font-bold text-slate-600">${promoLabels[store.promo] || store.promo || '店頭'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100">
+              <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
+                <span>得票数: <strong class="text-slate-800 font-black text-sm">${store.votes || 0}</strong> 票</span>
+                <span class="text-orange-600 font-black">${sharePercent}% シェア</span>
+              </div>
+              <button onclick="selectStoreForVote('${store.id}')" class="w-full py-2.5 rounded-2xl font-black text-xs shadow-md transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer ${
+                isSelected 
+                  ? 'bg-orange-600 text-white ring-2 ring-orange-300' 
+                  : 'bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white'
+              }">
+                <i data-lucide="${isSelected ? 'check-circle-2' : 'mouse-pointer-click'}" class="w-4 h-4"></i>
+                ${isSelected ? '選択中！(下のSTEP 3へ)' : 'この店を選択して理由を書く'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const isNoneSelected = window.selectedStoreForVote === '__none__';
+      const noneShare = totalVotes > 0 ? Math.round(((window.noneVotes || 0) / totalVotes) * 100) : 0;
+
+      html += `
+        <div class="bg-gradient-to-b from-slate-50 to-white rounded-3xl p-5 shadow-sm border-2 transition flex flex-col justify-between ${
+          isNoneSelected ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30' : 'border-dashed border-slate-300 hover:border-slate-400'
+        }">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700">選択肢</span>
+              <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">※未開拓需要（機会損失）</span>
+            </div>
+
+            <div class="flex items-center gap-3 my-2">
+              <div class="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-300 flex items-center justify-center text-2xl shrink-0">🏠</div>
+              <div>
+                <h3 class="font-black text-base text-slate-800 leading-tight">該当なし（直帰・買わない）</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5">「予算に合わない」「欲しいものがない」</p>
+              </div>
+            </div>
+
+            <div class="bg-slate-100/70 rounded-2xl p-3 my-3 border border-slate-200 space-y-1.5 text-[11px] text-slate-600 leading-relaxed">
+              <p>行きたい店舗が見当たらない場合や、お小遣い・予算をオーバーしている場合はこちらを選択してください。</p>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
+              <span>直帰選択数: <strong class="text-slate-800 font-black text-sm">${window.noneVotes || 0}</strong> 票</span>
+              <span class="text-rose-600 font-black">${noneShare}% 離脱率</span>
+            </div>
+            <button onclick="selectStoreForVote('__none__')" class="w-full py-2.5 rounded-2xl font-black text-xs shadow-md transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer ${
+              isNoneSelected ? 'bg-rose-600 text-white ring-2 ring-rose-300' : 'bg-slate-700 hover:bg-slate-800 text-white'
+            }">
+              <i data-lucide="${isNoneSelected ? 'check-circle-2' : 'home'}" class="w-4 h-4"></i>
+              ${isNoneSelected ? '選択中！(下のSTEP 3へ)' : '「該当なし」を選択して理由を書く'}
+            </button>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      if (window.lucide) lucide.createIcons();
+    };
+
+    window.simulateBatchVotes = function(count) {
+      if (!window.stores || window.stores.length === 0) return;
+
+      const sampleReasonList = [
+        '久留米高校前で部活終わりのペコペコ状態に最高！ボリューム満点！',
+        '安くて小遣いの範囲で買えるからコスパ抜群！',
+        '六ツ門のカフェで放課後インスタ映えする写真が撮れる！',
+        '南久留米の静かな場所でWi-Fiと電源があって自習に最適！',
+        '西鉄久留米駅で電車に乗る前にすぐ寄れる！',
+        '駄菓子を10円・20円でいろいろ選ぶのが楽しい！'
+      ];
+
+      for (let i = 0; i < count; i++) {
+        const randPersona = personasMaster[Math.floor(Math.random() * personasMaster.length)];
+        let noneWeight = 5;
+        if (randPersona.id === 'cost') noneWeight += 10;
+
+        const weights = window.stores.map(store => {
+          let w = 10;
+          if (store.targetPersona === randPersona.id || (store.targetPersona && store.targetPersona.includes(randPersona.name))) w += 25;
+          return Math.max(1, w);
+        });
+
+        const sumW = weights.reduce((a, b) => a + b, 0) + noneWeight;
+        let rnd = Math.random() * sumW;
+
+        if (rnd < noneWeight) {
+          window.noneVotes = (window.noneVotes || 0) + 1;
+          if (!window.noneReasons) window.noneReasons = [];
+          window.noneReasons.unshift('予算オーバーや好みのメニューがなかったため直帰');
+        } else {
+          rnd -= noneWeight;
+          let chosenIdx = 0;
+          for (let j = 0; j < weights.length; j++) {
+            if (rnd < weights[j]) { chosenIdx = j; break; }
+            rnd -= weights[j];
+          }
+          window.stores[chosenIdx].votes = (window.stores[chosenIdx].votes || 0) + 1;
+          if (!window.stores[chosenIdx].reasons) window.stores[chosenIdx].reasons = [];
+          window.stores[chosenIdx].reasons.unshift(sampleReasonList[Math.floor(Math.random() * sampleReasonList.length)]);
+        }
+      }
+
+      window.saveStorage();
+      renderVotingStores();
+      renderTeamsList();
+      updateDashboard();
+      showToast(`クラス35人分の久留米ペルソナ投票（直帰含む）を実行しました！`);
+    };
+
+    window.resetVotesOnly = function() {
+      (window.stores || []).forEach(s => {
+        s.votes = 0;
+        s.reasons = [];
+      });
+      window.noneVotes = 0;
+      window.noneReasons = [];
+      window.selectedStoreForVote = null;
+      updateSelectedStorePreview();
+      window.saveStorage();
+      renderVotingStores();
+      renderTeamsList();
+      updateDashboard();
+      showToast('投票数と理由をリセットしました');
+    };
+
+    function isStoreAffectedByEvent(store, persona = null) {
+      if (!window.currentEvent) return false;
+      if (window.currentEvent.targetStoreIds && window.currentEvent.targetStoreIds.length > 0) {
+        return window.currentEvent.targetStoreIds.includes(store.id);
+      }
+      if (window.currentEvent.targetLocations && window.currentEvent.targetLocations.length > 0) {
+        return window.currentEvent.targetLocations.includes(store.location);
+      }
+      return true;
+    }
+
+    // --- 損益計算（P/L） ---
+    function computeFinancialsForStore(store, isEventApplied = false) {
+      const DAILY_TRAFFIC = 400;
+      const MONTHLY_DAYS = 20;
+      const m = window.currentMonth || 4;
+      const season = monthSeasonsMaster[m] || monthSeasonsMaster[4];
+
+      const storesList = window.stores || [];
+      const storesVotes = storesList.reduce((sum, s) => sum + (s.votes || 0), 0);
+      const totalVotes = storesVotes + (window.noneVotes || 0);
+
+      const votes = store.votes || 0;
+      const share = totalVotes > 0 ? (votes / totalVotes) : (1 / (storesList.length + 1));
+
+      let seasonTrafficMult = season.globalTrafficMult || 1.0;
+      if (season.locationBoost && season.locationBoost[store.location]) {
+        seasonTrafficMult *= season.locationBoost[store.location];
+      }
+      if (season.categoryBoost && season.categoryBoost[store.category]) {
+        seasonTrafficMult *= season.categoryBoost[store.category];
+      }
+
+      const monthlyCustomers = Math.round(DAILY_TRAFFIC * share * MONTHLY_DAYS * seasonTrafficMult);
+
+      let costMult = 1.0;
+      if (isEventApplied && window.currentEvent && isStoreAffectedByEvent(store)) {
+        costMult = window.currentEvent.costMultiplier || 1.0;
+      }
+
+      const metrics = calculateEffectiveStoreMetrics(store, costMult);
+
+      const revenue = monthlyCustomers * metrics.effectivePrice;
+      const totalVarCost = monthlyCustomers * metrics.effectiveVarCost;
+      const contributionMargin = revenue - totalVarCost;
+      const fixedCost = metrics.totalFixedCost;
+      const operatingProfit = contributionMargin - fixedCost;
+
+      return {
+        monthlyCustomers,
+        effectivePrice: metrics.effectivePrice,
+        revenue,
+        totalVarCost,
+        contributionMargin,
+        fixedCost,
+        operatingProfit
+      };
+    }
+
+    function calculateSimulationMetrics() {
+      const storesList = window.stores || [];
+      const storesVotes = storesList.reduce((sum, s) => sum + (s.votes || 0), 0);
+      const totalVotes = storesVotes + (window.noneVotes || 0);
+
+      const placeDisplayNames = {
+        gate: '学校エリア（久留米高校前）',
+        station: '駅前（西鉄久留米）',
+        arcade: '商店街（六ツ門・一番街）',
+        residential: '住宅エリア（南久留米）'
+      };
+
+      const results = storesList.map(store => {
+        const current = computeFinancialsForStore(store, !!window.currentEvent);
+        const base = computeFinancialsForStore(store, false);
+        const sharePercent = totalVotes > 0 ? Math.round(((store.votes || 0) / totalVotes) * 100) : 0;
+
+        let feedbackText = '';
+        if (store.reasons && store.reasons.length > 0) {
+          feedbackText = `「${store.reasons[0]}」`;
+        } else {
+          feedbackText = current.operatingProfit >= 0 ? '「コスパや立地が良く、放課後に利用しやすい！」' : '「価格が高め、または固定費が重く赤字傾向です。」';
+        }
+
+        return {
+          ...store,
+          locationDisplay: placeDisplayNames[store.location] || store.location,
+          sharePercent,
+          ...current,
+          baseMetrics: base,
+          feedbackText
+        };
+      });
+
+      results.sort((a, b) => b.operatingProfit - a.operatingProfit);
+
+      return {
+        results,
+        totalVotes,
+        noneVotes: window.noneVotes || 0,
+        totalMarketRevenue: results.reduce((sum, r) => sum + r.revenue, 0),
+        totalMarketCustomers: results.reduce((sum, r) => sum + r.monthlyCustomers, 0),
+        totalProfit: results.reduce((sum, r) => sum + r.operatingProfit, 0)
+      };
+    }
+
+    window.updateDashboard = function() {
+      const data = calculateSimulationMetrics();
+      const kpiContainer = document.getElementById('sim-kpi-cards');
+      const tableBody = document.getElementById('sim-financials-tbody');
+      const feedbackGrid = document.getElementById('sim-feedback-grid');
+      const storeSelect = document.getElementById('analysis-store-select');
+
+      if (storeSelect) {
+        const curSelected = storeSelect.value;
+        storeSelect.innerHTML = data.results.map(r => `
+          <option value="${r.id}" ${r.id === curSelected ? 'selected' : ''}>${r.teamName}: ${r.storeName}</option>
+        `).join('');
+      }
+
+      const topProfitStore = data.results[0] || { storeName: 'ー', operatingProfit: 0, teamName: 'ー' };
+      if (kpiContainer) {
+        kpiContainer.innerHTML = `
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-bold text-slate-500 block">${window.currentMonth}月度 放課後商圏 総月商</span>
+            <div class="text-xl font-black text-slate-900 mt-1">¥${data.totalMarketRevenue.toLocaleString()}</div>
+            <span class="text-[10px] text-emerald-600 font-bold">全${data.results.length}店舗の売上合計</span>
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-bold text-slate-500 block">月間総動員客数 / 直帰率</span>
+            <div class="text-xl font-black text-slate-900 mt-1">${data.totalMarketCustomers.toLocaleString()} <span class="text-xs font-normal">人</span></div>
+            <span class="text-[10px] text-rose-600 font-bold">直帰: ${data.noneVotes}票 (${data.totalVotes > 0 ? Math.round((data.noneVotes / data.totalVotes) * 100) : 0}%)</span>
+          </div>
+          <div class="bg-white rounded-2xl p-4 border-2 border-amber-300 bg-amber-50/50 shadow-xs">
+            <span class="text-[11px] font-black text-amber-800 block">👑 ${window.currentMonth}月度 営業利益 第1位</span>
+            <div class="text-sm font-black text-indigo-900 truncate mt-1">${topProfitStore.teamName} ${topProfitStore.storeName}</div>
+            <div class="text-base font-black text-emerald-600 font-mono">¥${topProfitStore.operatingProfit.toLocaleString()}</div>
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-bold text-slate-500 block">${window.currentMonth}月度 商圏総営業利益</span>
+            <div class="text-xl font-black ${data.totalProfit >= 0 ? 'text-indigo-600' : 'text-rose-600'} mt-1">
+              ¥${data.totalProfit.toLocaleString()}
+            </div>
+            <span class="text-[10px] ${data.totalProfit >= 0 ? 'text-indigo-500' : 'text-rose-500'} font-bold">全店合計の純営業利益</span>
+          </div>
+        `;
+      }
+
+      if (tableBody) {
+        tableBody.innerHTML = data.results.map((r, idx) => {
+          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+          const isProfitable = r.operatingProfit >= 0;
+
+          return `
+            <tr class="hover:bg-slate-50/80 transition">
+              <td class="py-3 px-3 font-black text-sm">${medal}</td>
+              <td class="py-3 px-3">
+                <div class="font-extrabold text-slate-800">${r.storeName}</div>
+                <div class="text-[10px] text-slate-400 font-bold">${r.teamName}</div>
+              </td>
+              <td class="py-3 px-3 text-[11px] text-slate-600">${r.locationDisplay}</td>
+              <td class="py-3 px-3 text-right font-mono font-bold">${r.monthlyCustomers.toLocaleString()}人</td>
+              <td class="py-3 px-3 text-right font-mono font-bold text-emerald-700">¥${r.effectivePrice.toLocaleString()}</td>
+              <td class="py-3 px-3 text-right font-mono font-black text-slate-900 text-sm">
+                ¥${r.revenue.toLocaleString()}
+              </td>
+              <td class="py-3 px-3 text-right font-mono text-rose-600">¥${r.totalVarCost.toLocaleString()}</td>
+              <td class="py-3 px-3 text-right font-mono font-bold text-indigo-700">¥${r.contributionMargin.toLocaleString()}</td>
+              <td class="py-3 px-3 text-right font-mono text-slate-500">¥${r.fixedCost.toLocaleString()}</td>
+              <td class="py-3 px-3 text-right">
+                <span class="font-mono font-black text-sm ${isProfitable ? 'text-emerald-600' : 'text-rose-600'}">
+                  ¥${r.operatingProfit.toLocaleString()}
+                </span>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      if (feedbackGrid) {
+        let feedbackHTML = data.results.map(r => `
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/60 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <h4 class="font-black text-xs text-slate-800 truncate">${r.storeName}</h4>
+                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-700">利益 ¥${r.operatingProfit.toLocaleString()}</span>
+              </div>
+              <p class="text-[11px] text-slate-600 italic leading-relaxed">${r.feedbackText}</p>
+            </div>
+          </div>
+        `).join('');
+
+        if (window.noneReasons && window.noneReasons.length > 0) {
+          feedbackHTML += `
+            <div class="p-3.5 rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/40 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <h4 class="font-black text-xs text-rose-800 truncate">🏠 該当なし（直帰生徒の声）</h4>
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-200 text-rose-900">${window.noneVotes}票の不満</span>
+                </div>
+                <p class="text-[11px] text-rose-700 italic leading-relaxed">「${window.noneReasons[0]}」</p>
+              </div>
+            </div>
+          `;
+        }
+        feedbackGrid.innerHTML = feedbackHTML;
+      }
+
+      renderCharts(data.results, data.noneVotes);
+      renderEventImpactAnalysis();
+    };
+
+    window.renderEventImpactAnalysis = function() {
+      const container = document.getElementById('event-analysis-content');
+      const select = document.getElementById('analysis-store-select');
+      if (!container || !select) return;
+
+      const storeId = select.value;
+      const data = calculateSimulationMetrics();
+      const target = data.results.find(r => r.id === storeId) || data.results[0];
+
+      if (!target) {
+        container.innerHTML = `<p class="col-span-4 text-xs text-indigo-300">店舗データがありません。</p>`;
+        return;
+      }
+
+      const cur = target;
+      const base = target.baseMetrics;
+
+      const revDiff = cur.revenue - base.revenue;
+      const varDiff = cur.totalVarCost - base.totalVarCost;
+      const fcDiff = cur.fixedCost - base.fixedCost;
+      const profitDiff = cur.operatingProfit - base.operatingProfit;
+
+      const formatDiff = (num) => {
+        const sign = num > 0 ? '+' : '';
+        const color = num > 0 ? 'text-emerald-400' : (num < 0 ? 'text-rose-400' : 'text-slate-400');
+        return `<span class="${color} font-mono font-extrabold">${sign}¥${num.toLocaleString()}</span>`;
+      };
+
+      const m = window.currentMonth || 4;
+      const season = monthSeasonsMaster[m] || monthSeasonsMaster[4];
+      const eventName = window.currentEvent ? `${window.currentEvent.icon} ${window.currentEvent.title}` : `【${season.name}度 季節環境】${season.title}`;
+
+      container.innerHTML = `
+        <div class="bg-slate-800/80 rounded-xl p-3 border border-indigo-700/60">
+          <div class="text-[10px] text-indigo-300 font-bold flex justify-between">
+            <span>① 売上高の変動</span>
+            <span class="text-[9px] text-slate-400">客数×客単価</span>
+          </div>
+          <div class="text-base font-black text-white font-mono mt-1">¥${cur.revenue.toLocaleString()}</div>
+          <div class="text-[11px] mt-1 pt-1 border-t border-slate-700/80 flex justify-between">
+            <span class="text-slate-400">通常比:</span>
+            ${formatDiff(revDiff)}
+          </div>
+        </div>
+
+        <div class="bg-slate-800/80 rounded-xl p-3 border border-indigo-700/60">
+          <div class="text-[10px] text-indigo-300 font-bold flex justify-between">
+            <span>② 変動費の変動</span>
+            <span class="text-[9px] text-slate-400">仕入・材料費</span>
+          </div>
+          <div class="text-base font-black text-rose-300 font-mono mt-1">¥${cur.totalVarCost.toLocaleString()}</div>
+          <div class="text-[11px] mt-1 pt-1 border-t border-slate-700/80 flex justify-between">
+            <span class="text-slate-400">通常比:</span>
+            ${formatDiff(varDiff)}
+          </div>
+        </div>
+
+        <div class="bg-slate-800/80 rounded-xl p-3 border border-indigo-700/60">
+          <div class="text-[10px] text-indigo-300 font-bold flex justify-between">
+            <span>③ 固定費合計</span>
+            <span class="text-[9px] text-slate-400">家賃・人件費等</span>
+          </div>
+          <div class="text-base font-black text-slate-300 font-mono mt-1">¥${cur.fixedCost.toLocaleString()}</div>
+          <div class="text-[11px] mt-1 pt-1 border-t border-slate-700/80 flex justify-between">
+            <span class="text-slate-400">通常比:</span>
+            ${formatDiff(fcDiff)}
+          </div>
+        </div>
+
+        <div class="bg-slate-800/80 rounded-xl p-3 border-2 ${profitDiff >= 0 ? 'border-emerald-500 bg-emerald-950/20' : 'border-rose-500 bg-rose-950/20'}">
+          <div class="text-[10px] font-black text-amber-300 flex justify-between">
+            <span>④ 営業利益の増減</span>
+            <span class="text-[9px] bg-slate-700 text-slate-200 px-1 rounded">純利益</span>
+          </div>
+          <div class="text-base font-black font-mono mt-1 ${cur.operatingProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+            ¥${cur.operatingProfit.toLocaleString()}
+          </div>
+          <div class="text-[11px] mt-1 pt-1 border-t border-slate-700/80 flex justify-between">
+            <span class="text-slate-300 font-bold">環境要因影響額:</span>
+            ${formatDiff(profitDiff)}
+          </div>
+        </div>
+
+        <div class="col-span-1 md:col-span-4 bg-slate-800/90 rounded-xl p-3 border border-indigo-600 text-xs text-indigo-100 flex items-start gap-2.5">
+          <span class="text-lg">💡</span>
+          <div>
+            <strong class="text-amber-300 font-bold">現在の市場環境: ${eventName}</strong>
+            <p class="mt-0.5 leading-relaxed text-slate-300">${season.desc}</p>
+          </div>
+        </div>
+      `;
+    };
+
+    function renderCharts(results, noneVotes = 0) {
+      const labels = results.map(r => `${r.teamName} (${r.storeName})`);
+      const shares = results.map(r => r.votes);
+      const revenues = results.map(r => r.revenue);
+      const fixedCosts = results.map(r => r.fixedCost);
+      const profits = results.map(r => r.operatingProfit);
+
+      const pieLabels = [...labels, '🏠 該当なし（直帰）'];
+      const pieShares = [...shares, noneVotes];
+      const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#0ea5e9', '#94a3b8'];
+
+      const pieCanvas = document.getElementById('chart-market-share');
+      if (pieCanvas) {
+        if (chartMarketShareInstance) chartMarketShareInstance.destroy();
+        chartMarketShareInstance = new Chart(pieCanvas.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: pieLabels,
+            datasets: [{
+              data: pieShares.length > 0 && pieShares.some(v => v > 0) ? pieShares : [1],
+              backgroundColor: colors.slice(0, pieLabels.length),
+              borderWidth: 2,
+              borderColor: '#ffffff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+          }
+        });
+      }
+
+      const barCanvas = document.getElementById('chart-financials');
+      if (barCanvas) {
+        if (chartFinancialsInstance) chartFinancialsInstance.destroy();
+        chartFinancialsInstance = new Chart(barCanvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              { label: '売上高 (円)', data: revenues, backgroundColor: 'rgba(99, 102, 241, 0.85)', borderRadius: 6 },
+              { label: '固定費 (円)', data: fixedCosts, backgroundColor: 'rgba(148, 163, 184, 0.7)', borderRadius: 6 },
+              { label: '営業利益 (円)', data: profits, backgroundColor: profits.map(p => p >= 0 ? 'rgba(16, 185, 129, 0.9)' : 'rgba(244, 63, 94, 0.9)'), borderRadius: 6 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, ticks: { callback: v => '¥' + (v / 10000) + '万', font: { size: 10 } } },
+              x: { ticks: { font: { size: 10 } } }
+            },
+            plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } }
+          }
+        });
+      }
+    }
 
     let toastTimeout = null;
     function showToast(msg) {
