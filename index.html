@@ -33,11 +33,9 @@
         window.noneVotes = Number(data.noneVotes) || 0;
         window.noneReasons = Array.isArray(data.noneReasons) ? data.noneReasons : [];
         
-        if (typeof window.renderMonthBanner === 'function') window.renderMonthBanner();
-        if (typeof window.renderTeamsList === 'function') window.renderTeamsList();
-        if (typeof window.renderMapPins === 'function') window.renderMapPins();
-        if (typeof window.renderVotingStores === 'function') window.renderVotingStores();
-        if (typeof window.updateDashboard === 'function') window.updateDashboard();
+        try { localStorage.setItem('market_sim_stores_v5', JSON.stringify(data)); } catch(e) {}
+
+        if (typeof window.safeRenderAll === 'function') window.safeRenderAll();
         
         if (window.currentEvent) {
           if (typeof window.applyEventUI === 'function') window.applyEventUI();
@@ -59,7 +57,8 @@
         noneReasons: Array.isArray(window.noneReasons) ? window.noneReasons : [],
         updatedAt: Date.now()
       };
-      localStorage.setItem('market_sim_stores_v5', JSON.stringify(stateObj));
+      try { localStorage.setItem('market_sim_stores_v5', JSON.stringify(stateObj)); } catch(e) {}
+      
       set(ref(db, 'marketData'), stateObj).catch(err => {
         console.error("Firebase保存エラー:", err);
       });
@@ -74,23 +73,12 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
-    body {
-      font-family: 'Noto Sans JP', 'Plus Jakarta Sans', sans-serif;
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      height: 6px;
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background-color: #cbd5e1;
-      border-radius: 9999px;
-    }
+    body { font-family: 'Noto Sans JP', 'Plus Jakarta Sans', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 9999px; }
     .kurume-map-bg {
       background-color: #f1f5f9;
-      background-image: 
-        radial-gradient(#94a3b8 0.75px, transparent 0.75px), 
-        linear-gradient(to right, rgba(226, 232, 240, 0.5) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(226, 232, 240, 0.5) 1px, transparent 1px);
+      background-image: radial-gradient(#94a3b8 0.75px, transparent 0.75px), linear-gradient(to right, rgba(226, 232, 240, 0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(226, 232, 240, 0.5) 1px, transparent 1px);
       background-size: 24px 24px, 48px 48px, 48px 48px;
     }
   </style>
@@ -101,15 +89,13 @@
   <header class="bg-gradient-to-r from-indigo-700 via-blue-700 to-violet-800 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center font-black text-xl text-amber-300 shadow-inner">
-          久
-        </div>
+        <div class="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center font-black text-xl text-amber-300 shadow-inner">久</div>
         <div>
           <div class="flex items-center gap-2">
             <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 font-extrabold shadow-sm">久留米商圏PBL</span>
-            <span class="text-xs text-blue-200">月次決算・損益分析シミュレーター</span>
+            <span class="text-xs text-blue-200">商品別購買投票・損益分析シミュレーター</span>
           </div>
-          <h1 class="text-base sm:text-lg font-black tracking-tight">久留米エリア 営業利益バトル＆季節変動シミュレーター</h1>
+          <h1 class="text-base sm:text-lg font-black tracking-tight">久留米エリア 営業利益バトル＆商品購買シミュレーター</h1>
         </div>
       </div>
 
@@ -146,20 +132,20 @@
   <div class="bg-white border-b border-slate-200 sticky top-[58px] z-30 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto custom-scrollbar">
       <div class="flex space-x-1 sm:space-x-2 py-2">
-        <button class="nav-tab active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 bg-indigo-600 text-white shadow-sm transition cursor-pointer" data-tab="tab-teams">
+        <button type="button" class="nav-tab active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 bg-indigo-600 text-white shadow-sm transition cursor-pointer" data-tab="tab-teams">
           <i data-lucide="store" class="w-4 h-4"></i>
           ① 4P店舗設定 (<span id="team-badge-count">0</span>)
         </button>
-        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-map">
+        <button type="button" class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-map">
           <i data-lucide="map" class="w-4 h-4 text-blue-500"></i>
           ② 久留米商圏マップ
         </button>
-        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-voting">
-          <i data-lucide="check-square" class="w-4 h-4 text-orange-500"></i>
-          ③ 放課後投票（どこ行く？）
+        <button type="button" class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-voting">
+          <i data-lucide="shopping-cart" class="w-4 h-4 text-orange-500"></i>
+          ③ 放課後買い物投票（商品を選ぶ）
           <span id="vote-counter-badge" class="px-1.5 py-0.2 rounded-full bg-orange-100 text-orange-700 text-[10px] font-black">0票</span>
         </button>
-        <button class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-simulation">
+        <button type="button" class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-simulation">
           <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i>
           ④ 月次損益分析＆ランキング
           <span id="event-active-dot" class="hidden w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
@@ -173,7 +159,6 @@
     <!-- TAB 1: 4P STORE MANAGEMENT -->
     <div id="tab-teams" class="tab-content space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Store Input Form -->
         <div class="lg:col-span-5 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200">
           <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
             <div>
@@ -217,14 +202,13 @@
               </div>
             </div>
 
-            <!-- Product & Variable Costs -->
             <div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-2.5">
               <span class="text-[10px] font-black text-indigo-700 uppercase tracking-wider block">1. Product & Price (価格と変動費設計: 0円〜1円刻み)</span>
               
               <div class="p-2.5 bg-white rounded-lg border border-indigo-200/70 space-y-2">
                 <div class="flex items-center justify-between">
                   <span class="text-[11px] font-extrabold text-indigo-900 flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-indigo-600"></span> ★ 主力商品（看板メニュー）
+                    <span class="w-2 h-2 rounded-full bg-indigo-600"></span> ★ 看板商品（メインメニュー）
                   </span>
                   <span id="main-margin-badge" class="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-mono font-bold">限界利益: ¥12 (40%)</span>
                 </div>
@@ -243,7 +227,6 @@
                 </div>
               </div>
 
-              <!-- Sub-products -->
               <div class="space-y-2">
                 <div class="flex items-center justify-between">
                   <span class="text-[11px] font-bold text-slate-700">追加商品・駄菓子ラインナップ（複数登録可）</span>
@@ -278,7 +261,6 @@
               </div>
             </div>
 
-            <!-- Place & Fixed Costs -->
             <div class="p-3 bg-amber-50/50 rounded-xl border border-amber-100 space-y-2">
               <span class="text-[10px] font-black text-amber-700 uppercase tracking-wider block">2. Place & Fixed Cost (立地と月額固定費内訳)</span>
               <div>
@@ -307,7 +289,6 @@
               </div>
             </div>
 
-            <!-- Promotion & Target Persona -->
             <div class="p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-2">
               <span class="text-[10px] font-black text-rose-700 uppercase tracking-wider block">3. Promotion (販促プロモーション)</span>
               <div class="grid grid-cols-2 gap-2">
@@ -350,7 +331,6 @@
           </form>
         </div>
 
-        <!-- Registered Stores Grid -->
         <div class="lg:col-span-7 flex flex-col space-y-4">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
@@ -358,8 +338,8 @@
               参入中の店舗一覧（コスト構造比較）
             </h2>
             <button onclick="switchTab('tab-voting')" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-black px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
-              <i data-lucide="vote" class="w-4 h-4"></i>
-              放課後投票へ進む
+              <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+              放課後買い物投票へ進む
             </button>
           </div>
 
@@ -397,15 +377,9 @@
             <text x="730" y="335" fill="#475569" font-size="10" font-weight="bold">JR久大本線</text>
           </svg>
 
-          <div class="absolute top-10 left-[480px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">
-            🏛️ 久留米シティプラザ
-          </div>
-          <div class="absolute top-[280px] left-[320px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">
-            🏥 聖マリア病院
-          </div>
-          <div class="absolute bottom-20 left-[260px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">
-            🌳 津福公園
-          </div>
+          <div class="absolute top-10 left-[480px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">🏛️ 久留米シティプラザ</div>
+          <div class="absolute top-[280px] left-[320px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">🏥 聖マリア病院</div>
+          <div class="absolute bottom-20 left-[260px] bg-slate-800/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">🌳 津福公園</div>
 
           <div class="absolute top-5 left-10 w-72 bg-emerald-50/95 border-2 border-rose-500 rounded-3xl p-3.5 shadow-md backdrop-blur-xs">
             <div class="flex items-center justify-between">
@@ -458,7 +432,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: VOTING -->
+    <!-- TAB 3: VOTING (商品選択バスケット方式) -->
     <div id="tab-voting" class="tab-content hidden space-y-6">
       <div class="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -467,15 +441,15 @@
               <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-orange-100 text-orange-700">STEP 1</span>
               <h2 class="text-base sm:text-lg font-black text-slate-800">今日のペルソナ（なりきる人物）を選択</h2>
             </div>
-            <p class="text-xs text-slate-500 mt-0.5">あなたが持っている紙のペルソナカードの立場になって、お店を選んでください！</p>
+            <p class="text-xs text-slate-500 mt-0.5">あなたが持っている紙のペルソナカードの立場になって、お小遣い・予算に合わせて商品を選んでください！</p>
           </div>
 
           <div class="flex items-center gap-2 bg-amber-50 p-1.5 rounded-xl border border-amber-200">
-            <button onclick="simulateBatchVotes(35)" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-xs font-black transition flex items-center gap-1 shadow-xs cursor-pointer">
+            <button type="button" onclick="simulateBatchVotes(35)" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-xs font-black transition flex items-center gap-1 shadow-xs cursor-pointer">
               <i data-lucide="dice-5" class="w-3.5 h-3.5"></i>
               クラス1クラス分(35票)模擬投票
             </button>
-            <button onclick="resetVotesOnly()" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition cursor-pointer">
+            <button type="button" onclick="resetVotesOnly()" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition cursor-pointer">
               投票リセット
             </button>
           </div>
@@ -504,12 +478,12 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-700">STEP 2</span>
-              <h2 class="text-base sm:text-lg font-black text-slate-800">放課後、今日行くお店を選択！</h2>
+              <h2 class="text-base sm:text-lg font-black text-slate-800">放課後、買いたい商品（複数可）を選択！</h2>
             </div>
-            <p class="text-xs text-slate-500 mt-0.5">主力商品やサブメニューを見比べて「ここに行きたい！」と思うお店を選んでください。</p>
+            <p class="text-xs text-slate-500 mt-0.5">お店の中にある「看板商品」や「追加駄菓子・サイドメニュー」にチェックを入れて選んでください。</p>
           </div>
           <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-            総投票数: <strong id="voting-total-count" class="text-orange-600 font-black">0</strong> 票
+            総来店数: <strong id="voting-total-count" class="text-orange-600 font-black">0</strong> 票
           </span>
         </div>
 
@@ -522,12 +496,12 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-indigo-600 text-white">STEP 3</span>
-              <h2 class="text-base sm:text-lg font-black text-slate-800">選んだ理由（購買動機）を入力して投票を確定！</h2>
+              <h2 class="text-base sm:text-lg font-black text-slate-800">選んだ理由（購買動機）を入力して購入を確定！</h2>
             </div>
-            <p class="text-xs text-slate-600 mt-0.5">あなたのペルソナがなぜその店（または直帰）を選んだのか教えてください。</p>
+            <p class="text-xs text-slate-600 mt-0.5">その商品・メニューを選んだ（または直帰した）決め手を教えてください。</p>
           </div>
           <div id="voting-selected-store-preview" class="text-xs font-bold text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-indigo-200">
-            選択中の店舗: <span class="text-indigo-600 font-black">（STEP 2で選択してください）</span>
+            選択中の商品: <span class="text-indigo-600 font-black">（STEP 2で商品を選択してください）</span>
           </div>
         </div>
 
@@ -564,13 +538,13 @@
 
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-1">自由記述（ペルソナの生の声）:</label>
-            <textarea id="voting-reason-input" rows="2" placeholder="例: 10円台の駄菓子を5個買っても100円以内で大満足！放課後友達と寄り道しやすい！" class="w-full px-3 py-2 rounded-xl border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs bg-white"></textarea>
+            <textarea id="voting-reason-input" rows="2" placeholder="例: 10円台の駄菓子を複数個買っても合計50円で予算にピッタリ！放課後友達と寄り道しやすい！" class="w-full px-3 py-2 rounded-xl border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs bg-white"></textarea>
           </div>
 
           <div class="flex justify-end">
-            <button id="btn-submit-vote-final" onclick="submitFinalVoteWithReason()" class="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+            <button type="button" id="btn-submit-vote-final" onclick="submitFinalVoteWithReason()" class="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
               <i data-lucide="send" class="w-4 h-4"></i>
-              理由を送信して投票を確定！
+              購入を確定して投票！
             </button>
           </div>
         </div>
@@ -588,7 +562,7 @@
           <h2 class="text-xl font-black mt-1"><span id="sim-month-heading">4月度</span> 店舗別・営業利益ランキング & 季節要因分析</h2>
           <p class="text-xs text-slate-300 mt-1">月間売上高（客数×実効単価）－ 月間変動費 － 月間固定費 ＝ 営業利益で月次順位を決定。</p>
         </div>
-        <button onclick="updateDashboard()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black px-5 py-2.5 rounded-xl text-xs transition shadow-lg flex items-center gap-2 cursor-pointer">
+        <button type="button" onclick="updateDashboard()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black px-5 py-2.5 rounded-xl text-xs transition shadow-lg flex items-center gap-2 cursor-pointer">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
           再集計・グラフ更新
         </button>
@@ -685,9 +659,9 @@
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-extrabold text-sm sm:text-base text-slate-800 flex items-center gap-2">
             <i data-lucide="message-square" class="w-4 h-4 text-rose-500"></i>
-            ペルソナからのリアルな口コミ（VOC・投票で寄せられた理由）
+            ペルソナからのリアルな口コミ（VOC・投票で寄せられた理由・直帰データ）
           </h3>
-          <span class="text-[10px] text-slate-400">※STEP 3で入力された投票理由が最新順に表示されます</span>
+          <span class="text-[10px] text-slate-400">※STEP 3で入力された投票理由や直帰詳細が最新順に表示されます</span>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="sim-feedback-grid"></div>
       </div>
@@ -728,14 +702,12 @@
           <span class="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></span>
           <h3 class="text-base font-black text-amber-300">教員用 月次進行＆市場コントロールパネル</h3>
         </div>
-        <button onclick="closeAdminConsoleModal()" class="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer">
+        <button type="button" onclick="closeAdminConsoleModal()" class="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <div class="p-6 overflow-y-auto custom-scrollbar space-y-6 text-xs">
-        
-        <!-- 営業月の月送りコントローラー -->
         <div class="p-4 bg-gradient-to-br from-indigo-900 to-slate-900 text-white border border-indigo-700 rounded-2xl space-y-3">
           <div class="flex items-center justify-between">
             <span class="font-extrabold text-amber-300 text-xs flex items-center gap-1.5">
@@ -751,22 +723,21 @@
               <div id="admin-current-month-display" class="text-lg font-black text-white mt-0.5">4月（新学期・新歓）</div>
             </div>
             <div class="flex gap-2">
-              <button onclick="adminChangeMonth(-1)" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold cursor-pointer">◀ 前月へ戻す</button>
-              <button onclick="adminChangeMonth(1)" class="px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg font-black shadow cursor-pointer">次月へ進める ▶</button>
+              <button type="button" onclick="adminChangeMonth(-1)" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold cursor-pointer">◀ 前月へ戻す</button>
+              <button type="button" onclick="adminChangeMonth(1)" class="px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg font-black shadow cursor-pointer">次月へ進める ▶</button>
             </div>
           </div>
 
           <div class="grid grid-cols-6 gap-1.5 pt-1">
-            <button onclick="adminSetMonth(4)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="4">4月 🌸</button>
-            <button onclick="adminSetMonth(5)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="5">5月 🌿</button>
-            <button onclick="adminSetMonth(6)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="6">6月 🌧️</button>
-            <button onclick="adminSetMonth(7)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="7">7月 ☀️</button>
-            <button onclick="adminSetMonth(8)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="8">8月 🎆</button>
-            <button onclick="adminSetMonth(9)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="9">9月 🍁</button>
+            <button type="button" onclick="adminSetMonth(4)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="4">4月 🌸</button>
+            <button type="button" onclick="adminSetMonth(5)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="5">5月 🌿</button>
+            <button type="button" onclick="adminSetMonth(6)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="6">6月 🌧️</button>
+            <button type="button" onclick="adminSetMonth(7)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="7">7月 ☀️</button>
+            <button type="button" onclick="adminSetMonth(8)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="8">8月 🎆</button>
+            <button type="button" onclick="adminSetMonth(9)" class="admin-month-btn py-1.5 rounded-lg border border-white/20 text-center font-bold cursor-pointer" data-m="9">9月 🍁</button>
           </div>
         </div>
 
-        <!-- マスターデータ操作 -->
         <div class="p-4 bg-slate-100 border border-slate-300 rounded-2xl space-y-2">
           <div class="flex items-center justify-between">
             <div>
@@ -778,29 +749,27 @@
             </div>
           </div>
           <div class="flex gap-2 pt-1">
-            <button onclick="adminLoadSampleStores()" class="flex-1 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+            <button type="button" onclick="adminLoadSampleStores()" class="flex-1 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
               <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
               サンプル4店舗を全員に一括適用
             </button>
-            <button onclick="adminResetAllData()" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center justify-center gap-1 cursor-pointer">
+            <button type="button" onclick="adminResetAllData()" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center justify-center gap-1 cursor-pointer">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               全データ完全初期化
             </button>
           </div>
         </div>
 
-        <!-- 突発イベントの現在のステータス -->
         <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between">
           <div>
             <span class="text-[10px] font-black uppercase text-amber-800">突発イベント発動状況</span>
             <div id="admin-current-event-text" class="text-sm font-black text-slate-800 mt-0.5">平常運転（突発イベント未発動）</div>
           </div>
-          <button onclick="adminResetEvent()" class="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold transition cursor-pointer">
+          <button type="button" onclick="adminResetEvent()" class="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold transition cursor-pointer">
             イベント即時解除
           </button>
         </div>
 
-        <!-- プリセットイベント -->
         <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-2">
           <label class="block font-extrabold text-slate-800 text-xs">突発イベントのプリセットから選んで入力:</label>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -823,7 +792,6 @@
           </div>
         </div>
 
-        <!-- カスタムイベント作成フォーム -->
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
           <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
             <span class="text-base">⚡</span>
@@ -869,22 +837,13 @@
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
-              <button type="button" onclick="selectTargetPreset('all')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">
-                全店舗一括
-              </button>
-              <button type="button" onclick="selectTargetPreset('station')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">
-                西鉄久留米駅前のみ
-              </button>
-              <button type="button" onclick="selectTargetPreset('arcade')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">
-                商店街のみ
-              </button>
-              <button type="button" onclick="selectTargetPreset('gate')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">
-                学校前のみ
-              </button>
+              <button type="button" onclick="selectTargetPreset('all')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">全店舗一括</button>
+              <button type="button" onclick="selectTargetPreset('station')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">西鉄久留米駅前のみ</button>
+              <button type="button" onclick="selectTargetPreset('arcade')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">商店街のみ</button>
+              <button type="button" onclick="selectTargetPreset('gate')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">学校前のみ</button>
             </div>
 
-            <div id="admin-target-stores-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto custom-scrollbar p-2 bg-white rounded-xl border border-slate-200">
-            </div>
+            <div id="admin-target-stores-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto custom-scrollbar p-2 bg-white rounded-xl border border-slate-200"></div>
           </div>
 
           <div>
@@ -892,7 +851,7 @@
             <input type="text" id="admin-evt-advice" placeholder="例: 変動費が高騰した店舗は、サイドメニューの値上げや高単価化を急ぎましょう。" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
           </div>
 
-          <button onclick="adminApplyCustomEvent()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+          <button type="button" onclick="adminApplyCustomEvent()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
             <i data-lucide="zap" class="w-4 h-4"></i>
             この設定でイベントを市場に即時発動！
           </button>
@@ -902,7 +861,7 @@
           <span>管理者パスワード設定:</span>
           <div class="flex gap-2">
             <input type="password" id="admin-new-pass" placeholder="新しいパスワード" class="px-2 py-1 rounded border border-slate-200 text-xs font-mono">
-            <button onclick="changeAdminPassword()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded font-bold cursor-pointer">更新</button>
+            <button type="button" onclick="changeAdminPassword()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded font-bold cursor-pointer">更新</button>
           </div>
         </div>
       </div>
@@ -918,30 +877,19 @@
   <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
       <div class="flex items-center gap-2">
-        <span class="font-bold text-slate-700">MarketPBL 久留米エディション v5.9</span>
+        <span class="font-bold text-slate-700">MarketPBL 久留米エディション v6.3</span>
         <span>|</span>
-        <span>駄菓子屋対応（0円・1円単位）＆ 店舗編集・削除シミュレーター</span>
+        <span>完全修復版・直帰ペルソナ情報収集＆商品別購買シミュレーター</span>
       </div>
-      <div class="text-[11px] text-slate-400">
-        久留米商圏PBL演習
-      </div>
+      <div class="text-[11px] text-slate-400">久留米商圏PBL演習</div>
     </div>
   </footer>
 
+  <!-- ============================================== -->
+  <!-- 核心スクリプト (全マスターデータ・全関数・安全防御) -->
+  <!-- ============================================== -->
   <script>
-    // --- State Variables ---
-    window.stores = [];
-    window.selectedPersona = 'sports';
-    window.selectedStoreForVote = null;
-    window.currentEvent = null;
-    window.currentMonth = 4;
-    window.noneVotes = 0;
-    window.noneReasons = [];
-    let adminPassword = localStorage.getItem('market_admin_pass') || 'teacher2026';
-    let chartMarketShareInstance = null;
-    let chartFinancialsInstance = null;
-
-    // --- Master Data ---
+    // --- マスターデータ ---
     const monthSeasonsMaster = {
       4: { name: '4月', title: '新学期・新歓・出会いの春商戦', icon: '🌸', desc: '新入生の部活探し＆友達づくりで買い食い・カフェ利用が急増！全店客数+15%の春特需！', impactLabel: '全店客数 +15% / 通常原価', globalTrafficMult: 1.15, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: {} },
       5: { name: '5月', title: 'GW・初夏・高校総体予選', icon: '🌿', desc: '気温上昇で冷たいドリンク・スイーツ需要急増！部活生・休日ファミリー客が活発化。', impactLabel: 'カフェ・ドリンク客数 +25% / 通常原価', globalTrafficMult: 1.05, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: { cafe: 1.25 } },
@@ -954,12 +902,12 @@
     const rentMap = { gate: 60000, station: 100000, arcade: 75000, residential: 40000 };
 
     const personasMaster = [
-      { id: 'sports', name: '① 腹ペコ部活生', personName: '佐藤 陸 (高2・運動部)', icon: '⚽', budget: '350円〜500円' },
-      { id: 'trend', name: '② トレンド女子', personName: '高橋 結菜 (高2・文化部/帰宅部)', icon: '🧋', budget: '600円〜900円' },
-      { id: 'study', name: '③ 勉強・作業派', personName: '渡辺 蓮 (高3・進学希望/テスト前)', icon: '📖', budget: '400円〜600円' },
-      { id: 'cost', name: '④ コスパ節約派', personName: '田中 葵 (高1・お小遣い月3,000円)', icon: '👛', budget: '150円〜300円' },
-      { id: 'commuter', name: '⑤ 駅通勤者', personName: '木村 恵美 (30代・西鉄久留米利用の会社員)', icon: '💼', budget: '700円〜1,200円' },
-      { id: 'family', name: '⑥ 近隣ファミリー', personName: '山本 友香 (40代・小学生連れ)', icon: '👨‍👩‍👧', budget: '1,000円〜1,500円' }
+      { id: 'sports', name: '① 腹ペコ部活生', personName: '佐藤 陸 (高2・運動部)', icon: '⚽', budget: '350円〜500円', defaultBudget: 500, defaultCategory: 'snack' },
+      { id: 'trend', name: '② トレンド女子', personName: '高橋 結菜 (高2・文化部/帰宅部)', icon: '🧋', budget: '600円〜900円', defaultBudget: 750, defaultCategory: 'cafe' },
+      { id: 'study', name: '③ 勉強・作業派', personName: '渡辺 蓮 (高3・進学希望/テスト前)', icon: '📖', budget: '400円〜600円', defaultBudget: 500, defaultCategory: 'study' },
+      { id: 'cost', name: '④ コスパ節約派', personName: '田中 葵 (高1・お小遣い月3,000円)', icon: '👛', budget: '30円〜300円', defaultBudget: 150, defaultCategory: 'dagashi' },
+      { id: 'commuter', name: '⑤ 駅通勤者', personName: '木村 恵美 (30代・西鉄久留米利用の会社員)', icon: '💼', budget: '700円〜1,200円', defaultBudget: 900, defaultCategory: 'convenience' },
+      { id: 'family', name: '⑥ 近隣ファミリー', personName: '山本 友香 (40代・小学生連れ)', icon: '👨‍👩‍👧', budget: '1,000円〜1,500円', defaultBudget: 1200, defaultCategory: 'snack' }
     ];
 
     const marketEventsMaster = [
@@ -970,21 +918,28 @@
     ];
 
     const defaultSampleStores = [
-      { id: 'store_1', teamName: '1班 (男子運動部)', storeName: '爆盛からあげ天国 ましまし亭', icon: '🍗', category: 'snack', productName: 'メガ盛りから揚げ丼（特製マヨ付き）', quality: 'budget', vibe: 'chill', price: 450, unitVariableCost: 170, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'school_flyer', targetPersona: 'sports', votes: 14, reasons: ['部活終わりに久留米高校前で即買える！ボリュームがすごい！'], subProducts: [{ name: '山盛りフライドポテト', price: 180, unitVariableCost: 45 }, { name: '部活応援メガ烏龍茶', price: 120, unitVariableCost: 20 }] },
-      { id: 'store_2', teamName: '2班 (トレンド企画部)', storeName: 'Chill & Sweets アオハルスタンド', icon: '🍓', category: 'cafe', productName: 'いちご生クリームもちもちクレープ', quality: 'premium', vibe: 'aesthetic', price: 580, unitVariableCost: 185, location: 'arcade', fixedRent: 75000, fixedLabor: 50000, fixedUtilities: 25000, promo: 'sns_reels', targetPersona: 'trend', votes: 16, reasons: ['六ツ門・シティプラザ近くで友達と写真撮りながら喋るのに最高！'], subProducts: [{ name: 'グラデーションフルーツソーダ', price: 380, unitVariableCost: 75 }] },
-      { id: 'store_3', teamName: '3班 (特進サポート隊)', storeName: '自習＆フリードリンク Focus CAFE', icon: '📚', category: 'study', productName: '全席電源完備・静寂ブース＆珈琲バー', quality: 'standard', vibe: 'quiet', price: 400, unitVariableCost: 80, location: 'residential', fixedRent: 40000, fixedLabor: 30000, fixedUtilities: 25000, promo: 'word_of_mouth', targetPersona: 'study', votes: 9, reasons: ['南久留米の住宅街にあって静か。Wi-Fiと電源完備でテスト勉強に籠もれる。'], subProducts: [{ name: '集中持続ブドウ糖スナック', price: 150, unitVariableCost: 45 }] },
-      { id: 'store_4', teamName: '4班 (駅前ベンチャー)', storeName: '西鉄久留米駅前 STAND 5', icon: '🍙', category: 'convenience', productName: '焼きたてパリパリおにぎり', quality: 'budget', vibe: 'speed', price: 150, unitVariableCost: 60, location: 'station', fixedRent: 100000, fixedLabor: 55000, fixedUtilities: 20000, promo: 'coupon', targetPersona: 'cost', votes: 11, reasons: ['西鉄久留米駅で電車やバスを待つ間に100円台でサクッと買える！'], subProducts: [{ name: 'ジューシーからあげ棒', price: 130, unitVariableCost: 45 }] }
+      { id: 'store_1', teamName: '1班 (男子運動部)', storeName: '爆盛からあげ天国 ましまし亭', icon: '🍗', category: 'snack', productName: 'メガ盛りから揚げ丼（特製マヨ付き）', quality: 'budget', vibe: 'chill', price: 450, unitVariableCost: 170, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'school_flyer', targetPersona: 'sports', votes: 14, cumulativeRevenue: 6300, cumulativeVarCost: 2380, reasons: ['部活終わりに久留米高校前で即買える！ボリュームがすごい！'], subProducts: [{ name: '山盛りフライドポテト', price: 180, unitVariableCost: 45 }, { name: '部活応援メガ烏龍茶', price: 120, unitVariableCost: 20 }] },
+      { id: 'store_2', teamName: '2班 (トレンド企画部)', storeName: 'Chill & Sweets アオハルスタンド', icon: '🍓', category: 'cafe', productName: 'いちご生クリームもちもちクレープ', quality: 'premium', vibe: 'aesthetic', price: 580, unitVariableCost: 185, location: 'arcade', fixedRent: 75000, fixedLabor: 50000, fixedUtilities: 25000, promo: 'sns_reels', targetPersona: 'trend', votes: 16, cumulativeRevenue: 9280, cumulativeVarCost: 2960, reasons: ['六ツ門・シティプラザ近くで友達と写真撮りながら喋るのに最高！'], subProducts: [{ name: 'グラデーションフルーツソーダ', price: 380, unitVariableCost: 75 }] },
+      { id: 'store_3', teamName: '3班 (特進サポート隊)', storeName: '自習＆フリードリンク Focus CAFE', icon: '📚', category: 'study', productName: '全席電源完備・静寂ブース＆珈琲バー', quality: 'standard', vibe: 'quiet', price: 400, unitVariableCost: 80, location: 'residential', fixedRent: 40000, fixedLabor: 30000, fixedUtilities: 25000, promo: 'word_of_mouth', targetPersona: 'study', votes: 9, cumulativeRevenue: 3600, cumulativeVarCost: 720, reasons: ['南久留米の住宅街にあって静か。Wi-Fiと電源完備でテスト勉強に籠もれる。'], subProducts: [{ name: '集中持続ブドウ糖スナック', price: 150, unitVariableCost: 45 }] },
+      { id: 'store_4', teamName: '4班 (駄菓子本舗)', storeName: '昭和レトロ堂', icon: '🍭', category: 'dagashi', productName: '棒付き水あめ', quality: 'budget', vibe: 'nostalgic', price: 30, unitVariableCost: 18, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'word_of_mouth', targetPersona: 'cost', votes: 11, cumulativeRevenue: 1320, cumulativeVarCost: 660, reasons: ['10円や30円でいろいろ買えるのが最高！'], subProducts: [{ name: '10円チョコ', price: 10, unitVariableCost: 6 }, { name: 'ミニラムネ', price: 20, unitVariableCost: 10 }, { name: 'パチパチキャンディ', price: 30, unitVariableCost: 15 }] }
     ];
 
-    // --- App Init ---
+    // --- 状態変数 ---
+    window.stores = [];
+    window.selectedPersona = 'sports';
+    window.selectedBasket = null;
+    window.currentEvent = null;
+    window.currentMonth = 4;
+    window.noneVotes = 0;
+    window.noneReasons = [];
+    let adminPassword = localStorage.getItem('market_admin_pass') || 'teacher2026';
+    let chartMarketShareInstance = null;
+    let chartFinancialsInstance = null;
+
+    // --- 初期ロード ---
     window.addEventListener('DOMContentLoaded', () => {
       loadLocalStorageBackup();
-      renderMonthBanner();
-      renderTeamsList();
-      renderMapPins();
-      renderVotingPersonaButtons();
-      renderVotingStores();
-      updateDashboard();
+      safeRenderAll();
       if (window.lucide) lucide.createIcons();
     });
 
@@ -996,10 +951,10 @@
           if (Array.isArray(parsed)) {
             window.stores = parsed;
           } else {
-            window.stores = parsed.stores || [];
-            window.currentMonth = parsed.currentMonth || 4;
-            window.noneVotes = parsed.noneVotes || 0;
-            window.noneReasons = parsed.noneReasons || [];
+            window.stores = Array.isArray(parsed.stores) ? parsed.stores : [];
+            window.currentMonth = Number(parsed.currentMonth) || 4;
+            window.noneVotes = Number(parsed.noneVotes) || 0;
+            window.noneReasons = Array.isArray(parsed.noneReasons) ? parsed.noneReasons : [];
           }
         } catch (e) {
           window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
@@ -1008,6 +963,50 @@
         window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
       }
     }
+
+    // --- 全画面レンダリング ---
+    window.safeRenderAll = function() {
+      try { renderMonthBanner(); } catch(e) { console.error("renderMonthBanner error:", e); }
+      try { renderTeamsList(); } catch(e) { console.error("renderTeamsList error:", e); }
+      try { renderMapPins(); } catch(e) { console.error("renderMapPins error:", e); }
+      try { renderVotingPersonaButtons(); } catch(e) { console.error("renderVotingPersonaButtons error:", e); }
+      try { renderVotingStores(); } catch(e) { console.error("renderVotingStores error:", e); }
+      try { updateDashboard(); } catch(e) { console.error("updateDashboard error:", e); }
+    };
+
+    // --- タブ切り替え ---
+    window.switchTab = function(targetTabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+
+      const activeSection = document.getElementById(targetTabId);
+      if (activeSection) activeSection.classList.remove('hidden');
+
+      const activeBtn = document.querySelector(`[data-tab="${targetTabId}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-600');
+      }
+
+      if (targetTabId === 'tab-simulation') updateDashboard();
+      else if (targetTabId === 'tab-voting') renderVotingStores();
+      else if (targetTabId === 'tab-map') renderMapPins();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (window.lucide) lucide.createIcons();
+    };
+
+    // タブクリックの初期イベント登録
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabId = btn.getAttribute('data-tab');
+        if (tabId) switchTab(tabId);
+      });
+    });
 
     // --- 月度・季節バナー描画 ---
     window.renderMonthBanner = function() {
@@ -1069,21 +1068,25 @@
 
     // --- 計算ヘルパー ---
     function calculateEffectiveStoreMetrics(store, costMultiplier = 1.0) {
-      const CROSS_SELL_RATE = 0.35;
       const m = window.currentMonth || 4;
       const season = (typeof monthSeasonsMaster !== 'undefined' && monthSeasonsMaster[m]) ? monthSeasonsMaster[m] : { varCostMult: 1.0, fixedUtilitiesMult: 1.0 };
-
       const totalVarMult = (Number(costMultiplier) || 1.0) * (season.varCostMult || 1.0);
-      const p = Number(store?.price) || 0;
-      let effectivePrice = p;
+
+      const votes = Number(store?.votes) || 0;
+      let effectivePrice = Number(store?.price) || 0;
       let effectiveVarCost = (Number(store?.unitVariableCost) || 0) * totalVarMult;
 
-      const subs = Array.isArray(store?.subProducts) ? store.subProducts : [];
-      if (subs.length > 0) {
-        const avgSubPrice = subs.reduce((sum, sp) => sum + (Number(sp?.price) || 0), 0) / subs.length;
-        const avgSubVarCost = (subs.reduce((sum, sp) => sum + (Number(sp?.unitVariableCost) || 0), 0) / subs.length) * totalVarMult;
-        effectivePrice += Math.round(avgSubPrice * CROSS_SELL_RATE);
-        effectiveVarCost += Math.round(avgSubVarCost * CROSS_SELL_RATE);
+      if (votes > 0 && store?.cumulativeRevenue && store.cumulativeRevenue > 0) {
+        effectivePrice = Math.round(store.cumulativeRevenue / votes);
+        effectiveVarCost = Math.round((store.cumulativeVarCost || (store.cumulativeRevenue * 0.4)) / votes * totalVarMult);
+      } else {
+        const subs = Array.isArray(store?.subProducts) ? store.subProducts : [];
+        if (subs.length > 0) {
+          const avgSubPrice = subs.reduce((sum, sp) => sum + (Number(sp?.price) || 0), 0) / subs.length;
+          const avgSubVarCost = (subs.reduce((sum, sp) => sum + (Number(sp?.unitVariableCost) || 0), 0) / subs.length) * totalVarMult;
+          effectivePrice += Math.round(avgSubPrice * 0.35);
+          effectiveVarCost += Math.round(avgSubVarCost * 0.35);
+        }
       }
 
       const unitContributionMargin = effectivePrice - effectiveVarCost;
@@ -1100,7 +1103,7 @@
       };
     }
 
-    // --- 店舗一覧描画（編集・削除アイコン付き＆完全防御） ---
+    // --- 店舗一覧描画 ---
     window.renderTeamsList = function() {
       const container = document.getElementById('teams-container');
       const badge = document.getElementById('team-badge-count');
@@ -1109,12 +1112,7 @@
       const storesList = Array.isArray(window.stores) ? window.stores : [];
       if (badge) badge.textContent = storesList.length;
 
-      const placeLabels = {
-        gate: '学校エリア（久留米高校前周辺）',
-        station: '駅前・オフィスエリア（西鉄久留米）',
-        arcade: '商店街エリア（六ツ門・一番街）',
-        residential: '住宅エリア（南久留米）'
-      };
+      const placeLabels = { gate: '学校エリア（久留米高校前周辺）', station: '駅前・オフィスエリア（西鉄久留米）', arcade: '商店街エリア（六ツ門・一番街）', residential: '住宅エリア（南久留米）' };
 
       if (storesList.length === 0) {
         container.innerHTML = `
@@ -1153,11 +1151,9 @@
                   ${teamName}
                 </span>
                 <div class="flex items-center gap-1">
-                  <!-- 編集ボタン -->
                   <button type="button" onclick="editStore('${store.id}')" title="この店舗を編集" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition cursor-pointer">
                     <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                   </button>
-                  <!-- 削除ボタン -->
                   <button type="button" onclick="deleteStore('${store.id}')" title="この店舗を削除" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                   </button>
@@ -1168,12 +1164,12 @@
                 <span class="text-2xl">${icon}</span>
                 <div class="min-w-0 flex-1">
                   <h3 class="font-bold text-slate-900 text-sm leading-tight truncate">${storeName}</h3>
-                  <p class="text-[11px] text-slate-500 line-clamp-1">★主力: ${prodName}</p>
+                  <p class="text-[11px] text-slate-500 line-clamp-1">★看板: ${prodName}</p>
                 </div>
               </div>
 
               <div class="grid grid-cols-3 gap-1 bg-slate-50 p-2 rounded-xl text-[10px] text-slate-600 mb-2 border border-slate-100">
-                <div><span class="text-slate-400 block">主力価格</span><strong>¥${price.toLocaleString()}</strong></div>
+                <div><span class="text-slate-400 block">看板価格</span><strong>¥${price.toLocaleString()}</strong></div>
                 <div><span class="text-rose-500 block">変動費/個</span><strong class="text-rose-600">¥${varCost.toLocaleString()}</strong></div>
                 <div><span class="text-indigo-500 block">月額固定費</span><strong class="text-indigo-700">¥${fixedCostDisplay.toLocaleString()}</strong></div>
               </div>
@@ -1183,7 +1179,7 @@
                   <div class="flex flex-wrap gap-1">
                     ${subProducts.map(sp => `
                       <span class="text-[9px] bg-indigo-50 text-indigo-700 font-medium px-1.5 py-0.5 rounded border border-indigo-100/60 truncate max-w-[120px]">
-                        + ${sp?.name || 'サイド'} (¥${Number(sp?.price) || 0})
+                        + ${sp?.name || '商品'} (¥${Number(sp?.price) || 0})
                       </span>
                     `).join('')}
                   </div>
@@ -1194,21 +1190,17 @@
 
               <div class="text-[11px] text-slate-500 space-y-0.5">
                 <div><span class="text-slate-400">立地:</span> <strong>${placeLabels[locationKey] || locationKey}</strong></div>
-                <div><span class="text-slate-400">得票数:</span> <strong class="text-orange-600 font-black">${votes} 票</strong></div>
+                <div><span class="text-slate-400">購入客数:</span> <strong class="text-orange-600 font-black">${votes} 人</strong></div>
               </div>
             </div>
           </div>
         `;
       }).join('');
 
-      try {
-        if (window.lucide && typeof lucide.createIcons === 'function') {
-          lucide.createIcons();
-        }
-      } catch(e) {}
+      if (window.lucide) lucide.createIcons();
     };
 
-    // --- Sub-Products Form Management ---
+    // --- サブ商品フォーム管理 ---
     const subproductsContainer = document.getElementById('subproducts-container');
     document.getElementById('btn-add-subproduct').addEventListener('click', () => addSubProductRow());
 
@@ -1287,6 +1279,8 @@
         promo: finalPromo,
         targetPersona: finalPersona,
         votes: 0,
+        cumulativeRevenue: 0,
+        cumulativeVarCost: 0,
         reasons: [],
         subProducts: subProducts
       };
@@ -1297,6 +1291,8 @@
         const idx = window.stores.findIndex(s => s.id === editId);
         if (idx !== -1) {
           storeData.votes = window.stores[idx].votes || 0;
+          storeData.cumulativeRevenue = window.stores[idx].cumulativeRevenue || 0;
+          storeData.cumulativeVarCost = window.stores[idx].cumulativeVarCost || 0;
           storeData.reasons = window.stores[idx].reasons || [];
           window.stores[idx] = storeData;
         }
@@ -1308,13 +1304,9 @@
       }
 
       window.saveStorage();
-      renderTeamsList();
-      renderMapPins();
-      renderVotingStores();
-      updateDashboard();
+      safeRenderAll();
     });
 
-    // --- 店舗編集の呼び出し ---
     window.editStore = function(id) {
       const s = (window.stores || []).find(item => item.id === id);
       if (!s) return;
@@ -1358,7 +1350,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // --- 店舗編集のキャンセル ---
     window.cancelEdit = function() {
       document.getElementById('edit-team-id').value = '';
       document.getElementById('btn-submit-text').textContent = '店舗をマーケットに追加';
@@ -1373,65 +1364,23 @@
       subproductsContainer.innerHTML = '';
     };
 
-    // --- 店舗の削除 ---
     window.deleteStore = function(id) {
       const st = (window.stores || []).find(s => s.id === id);
       const name = st ? st.storeName : 'この店舗';
-      if (!confirm(`「${name}」を本当に削除しますか？\n※全員の画面から削除されます。`)) {
-        return;
-      }
+      if (!confirm(`「${name}」を本当に削除しますか？\n※全員の画面から削除されます。`)) return;
 
       window.stores = (window.stores || []).filter(s => s.id !== id);
-      if (window.selectedStoreForVote === id) {
-        window.selectedStoreForVote = null;
+      if (window.selectedBasket && window.selectedBasket.storeId === id) {
+        window.selectedBasket = null;
         updateSelectedStorePreview();
       }
       if (document.getElementById('edit-team-id').value === id) {
         cancelEdit();
       }
       window.saveStorage();
-      renderTeamsList();
-      renderMapPins();
-      renderVotingStores();
-      updateDashboard();
+      safeRenderAll();
       showToast(`「${name}」を削除しました`);
     };
-
-    // --- タブ切り替え ---
-    window.switchTab = function(targetTabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.nav-tab').forEach(btn => {
-        btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
-        btn.classList.add('text-slate-600');
-      });
-
-      const activeSection = document.getElementById(targetTabId);
-      if (activeSection) activeSection.classList.remove('hidden');
-
-      const activeBtn = document.querySelector(`[data-tab="${targetTabId}"]`);
-      if (activeBtn) {
-        activeBtn.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
-        activeBtn.classList.remove('text-slate-600');
-      }
-
-      if (targetTabId === 'tab-simulation') {
-        updateDashboard();
-      } else if (targetTabId === 'tab-voting') {
-        renderVotingStores();
-      } else if (targetTabId === 'tab-map') {
-        renderMapPins();
-      }
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      if (window.lucide) lucide.createIcons();
-    };
-
-    document.querySelectorAll('.nav-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tabId = btn.getAttribute('data-tab');
-        switchTab(tabId);
-      });
-    });
 
     // --- マップ描画 ---
     window.renderMapPins = function() {
@@ -1459,7 +1408,7 @@
       });
     };
 
-    // --- 投票画面 ---
+    // --- 投票画面（ペルソナ選択） ---
     window.renderVotingPersonaButtons = function() {
       const container = document.getElementById('voting-persona-buttons');
       if (!container) return;
@@ -1481,77 +1430,205 @@
       window.selectedPersona = pId;
       renderVotingPersonaButtons();
       const p = personasMaster.find(item => item.id === pId);
-      if (p) showToast(`ペルソナ「${p.name}」を選択しました`);
+      if (p) {
+        showToast(`ペルソナ「${p.name}」を選択しました`);
+        const noneBudgetInput = document.getElementById('none-budget');
+        const noneCatInput = document.getElementById('none-category');
+        if (noneBudgetInput && p.defaultBudget) noneBudgetInput.value = p.defaultBudget;
+        if (noneCatInput && p.defaultCategory) noneCatInput.value = p.defaultCategory;
+      }
     };
 
-    window.selectStoreForVote = function(storeId) {
-      window.selectedStoreForVote = storeId;
-      renderVotingStores();
+    // --- 商品選択バスケット制御 ---
+    window.handleProductSelection = function(storeId, itemIndex) {
+      if (window.selectedBasket === '__none__' || !window.selectedBasket || window.selectedBasket.storeId !== storeId) {
+        document.querySelectorAll('input[type="checkbox"][data-store-id]').forEach(cb => {
+          if (cb.getAttribute('data-store-id') !== storeId) cb.checked = false;
+        });
+        window.selectedBasket = { storeId: storeId, items: [] };
+      }
+
+      const checkedBoxes = document.querySelectorAll(`input[type="checkbox"][data-store-id="${storeId}"]:checked`);
+      const store = (window.stores || []).find(s => s.id === storeId);
+      if (!store) return;
+
+      const chosenItems = [];
+      checkedBoxes.forEach(cb => {
+        const isMain = cb.getAttribute('data-is-main') === 'true';
+        if (isMain) {
+          chosenItems.push({
+            name: store.productName,
+            price: Number(store.price) || 0,
+            unitVariableCost: Number(store.unitVariableCost) || 0
+          });
+        } else {
+          const idx = parseInt(cb.getAttribute('data-sub-idx'), 10);
+          if (store.subProducts && store.subProducts[idx]) {
+            chosenItems.push({
+              name: store.subProducts[idx].name,
+              price: Number(store.subProducts[idx].price) || 0,
+              unitVariableCost: Number(store.subProducts[idx].unitVariableCost) || 0
+            });
+          }
+        }
+      });
+
+      if (chosenItems.length === 0) {
+        window.selectedBasket = null;
+      } else {
+        window.selectedBasket.items = chosenItems;
+      }
+
+      updateBasketUI(storeId);
+      updateSelectedStorePreview();
+    };
+
+    function updateBasketUI(storeId) {
+      const summaryEl = document.getElementById(`basket-summary-${storeId}`);
+      if (!summaryEl) return;
+
+      if (!window.selectedBasket || window.selectedBasket.storeId !== storeId || window.selectedBasket.items.length === 0) {
+        summaryEl.innerHTML = `<span class="text-slate-400">商品を選択してください</span>`;
+        return;
+      }
+
+      const totalP = window.selectedBasket.items.reduce((s, it) => s + it.price, 0);
+      const curPersona = personasMaster.find(p => p.id === window.selectedPersona) || personasMaster[0];
+      const isOver = totalP > (curPersona.defaultBudget || 1000);
+
+      summaryEl.innerHTML = `
+        <div class="flex items-center justify-between text-xs font-bold">
+          <span>購入点数: <strong class="text-slate-900">${window.selectedBasket.items.length}品</strong></span>
+          <span>合計金額: <strong class="text-sm font-mono ${isOver ? 'text-rose-600' : 'text-emerald-700'}">¥${totalP.toLocaleString()}</strong></span>
+        </div>
+        ${isOver ? `<span class="text-[10px] text-rose-500 font-bold block mt-0.5">⚠️ ペルソナの予算（〜${curPersona.budget}）をオーバー気味です</span>` : ''}
+      `;
+    }
+
+    // --- 直帰（該当なし）選択とペルソナ情報入力 ---
+    window.selectNoneForVote = function() {
+      document.querySelectorAll('input[type="checkbox"][data-store-id]').forEach(cb => cb.checked = false);
+      (window.stores || []).forEach(s => updateBasketUI(s.id));
+
+      const noneForm = document.getElementById('none-details-form');
+      if (noneForm) noneForm.classList.remove('hidden');
+
+      const curPersona = personasMaster.find(p => p.id === window.selectedPersona) || personasMaster[0];
+      const noneBudgetInput = document.getElementById('none-budget');
+      const noneCatInput = document.getElementById('none-category');
+      if (noneBudgetInput && (!noneBudgetInput.value || noneBudgetInput.value === '0')) {
+        noneBudgetInput.value = curPersona.defaultBudget || 300;
+      }
+      if (noneCatInput && !noneCatInput.value) {
+        noneCatInput.value = curPersona.defaultCategory || 'dagashi';
+      }
+
+      window.selectedBasket = '__none__';
       updateSelectedStorePreview();
 
       const step3El = document.getElementById('voting-selected-store-preview');
       if (step3El) step3El.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
+    window.syncNoneDetailsPreview = function() {
+      if (window.selectedBasket === '__none__') {
+        updateSelectedStorePreview();
+      }
+    };
+
     function updateSelectedStorePreview() {
       const previewEl = document.getElementById('voting-selected-store-preview');
       if (!previewEl) return;
 
-      if (!window.selectedStoreForVote) {
-        previewEl.innerHTML = `選択中の店舗: <span class="text-indigo-600 font-black">（STEP 2で選択してください）</span>`;
+      if (!window.selectedBasket) {
+        previewEl.innerHTML = `選択中の商品: <span class="text-indigo-600 font-black">（STEP 2で商品を選択してください）</span>`;
         return;
       }
 
-      if (window.selectedStoreForVote === '__none__') {
-        previewEl.innerHTML = `選択中の店舗: <span class="text-rose-600 font-black text-sm">🏠 該当なし（どこにも寄らず直帰）</span>`;
+      if (window.selectedBasket === '__none__') {
+        const catSelect = document.getElementById('none-category');
+        const catText = catSelect ? catSelect.options[catSelect.selectedIndex].text.split('（')[0] : '全般';
+        const budget = document.getElementById('none-budget')?.value || '未設定';
+        previewEl.innerHTML = `
+          選択中: <span class="text-rose-600 font-black text-sm">🏠 買わずに直帰（該当なし）</span>
+          <span class="text-slate-600 font-bold ml-1 text-xs">[希望: ${catText} / 予算: ¥${budget}]</span>
+        `;
         return;
       }
 
-      const st = (window.stores || []).find(s => s.id === window.selectedStoreForVote);
-      if (st) {
-        previewEl.innerHTML = `選択中の店舗: <span class="text-orange-600 font-black text-sm">${st.icon || '🏪'} ${st.storeName} (${st.teamName})</span>`;
-      }
+      const st = (window.stores || []).find(s => s.id === window.selectedBasket.storeId);
+      const items = window.selectedBasket.items || [];
+      const totalP = items.reduce((s, it) => s + it.price, 0);
+      const itemNames = items.map(it => `${it.name}(¥${it.price})`).join(' + ');
+
+      previewEl.innerHTML = `
+        選択中の商品: <span class="text-orange-600 font-black text-sm">${st ? st.storeName : ''}</span>
+        <span class="text-slate-700 font-bold ml-1">[ ${itemNames} ＝ 合計¥${totalP.toLocaleString()} ]</span>
+      `;
     }
 
     window.appendReasonTag = function(tagText) {
       const textarea = document.getElementById('voting-reason-input');
       if (!textarea) return;
-      if (textarea.value.trim() === '') {
-        textarea.value = tagText;
-      } else {
-        textarea.value += ' ' + tagText;
-      }
+      if (textarea.value.trim() === '') textarea.value = tagText;
+      else textarea.value += ' ' + tagText;
       textarea.focus();
     };
 
+    // --- 確定投票処理 ---
     window.submitFinalVoteWithReason = function() {
-      if (!window.selectedStoreForVote) {
-        alert('STEP 2 で投票したいお店（または「該当なし」）を選択してください！');
+      if (!window.selectedBasket) {
+        alert('STEP 2 で買いたい商品（または「買わずに直帰」）を選択してください！');
         return;
       }
 
       const reasonText = document.getElementById('voting-reason-input').value.trim();
 
-      if (window.selectedStoreForVote === '__none__') {
-        const finalReason = reasonText || '予算に合う店や魅力的なメニューがなかったため直帰';
+      if (window.selectedBasket === '__none__') {
+        const catSelect = document.getElementById('none-category');
+        const catLabel = catSelect ? catSelect.options[catSelect.selectedIndex].text.split('（')[0] : '指定なし';
+        const budget = document.getElementById('none-budget')?.value || '0';
+        const customReason = document.getElementById('none-reason-detail')?.value.trim() || '';
+
+        const fullReason = `【求めたジャンル: ${catLabel} / 予算: ¥${budget}】 ${reasonText || customReason || '希望に合う商品や予算内の選択肢がなかったため直帰'}`;
+
         window.noneVotes = (window.noneVotes || 0) + 1;
         if (!window.noneReasons) window.noneReasons = [];
-        window.noneReasons.unshift(finalReason);
+        window.noneReasons.unshift(fullReason);
 
         window.saveStorage();
         renderVotingStores();
         updateDashboard();
 
         document.getElementById('voting-reason-input').value = '';
-        showToast('「該当なし（直帰）」への投票が完了しました');
+        const noneForm = document.getElementById('none-details-form');
+        if (noneForm) noneForm.classList.add('hidden');
+        window.selectedBasket = null;
+        updateSelectedStorePreview();
+        showToast('「買わずに直帰」のペルソナ情報を記録しました');
         return;
       }
 
-      const store = (window.stores || []).find(s => s.id === window.selectedStoreForVote);
+      const store = (window.stores || []).find(s => s.id === window.selectedBasket.storeId);
       if (!store) return;
 
-      const finalReason = reasonText || '価格・メニュー構成・立地がペルソナのニーズに合致していたため';
+      const items = window.selectedBasket.items || [];
+      if (items.length === 0) {
+        alert('商品にチェックが入っていません。1つ以上選んでください。');
+        return;
+      }
+
+      const totalP = items.reduce((s, it) => s + it.price, 0);
+      const totalV = items.reduce((s, it) => s + it.unitVariableCost, 0);
+      const itemNames = items.map(it => it.name).join('、');
+
+      const defaultReason = `${itemNames} を購入。価格・組み合わせが魅力的だったため。`;
+      const finalReason = reasonText ? `${reasonText} [購入: ${itemNames}]` : defaultReason;
+
       store.votes = (store.votes || 0) + 1;
+      store.cumulativeRevenue = (store.cumulativeRevenue || 0) + totalP;
+      store.cumulativeVarCost = (store.cumulativeVarCost || 0) + totalV;
+
       if (!store.reasons) store.reasons = [];
       store.reasons.unshift(finalReason);
 
@@ -1561,14 +1638,17 @@
       updateDashboard();
 
       document.getElementById('voting-reason-input').value = '';
-      showToast(`「${store.storeName}」へ理由付き投票が完了しました！`);
+      window.selectedBasket = null;
+      updateSelectedStorePreview();
+      showToast(`「${store.storeName}」での購入（合計¥${totalP}）を記録しました！`);
     };
 
+    // --- 投票店舗カード描画 ---
     window.renderVotingStores = function() {
       const container = document.getElementById('voting-stores-grid');
       if (!container) return;
 
-      const storesList = window.stores || [];
+      const storesList = Array.isArray(window.stores) ? window.stores : [];
       const storesVotes = storesList.reduce((sum, s) => sum + (s.votes || 0), 0);
       const totalVotes = storesVotes + (window.noneVotes || 0);
 
@@ -1577,30 +1657,19 @@
       if (countEl) countEl.textContent = totalVotes;
       if (badgeEl) badgeEl.textContent = `${totalVotes}票`;
 
-      const locationLabels = {
-        gate: '学校エリア（久留米高校前周辺）',
-        station: '駅前・オフィスエリア（西鉄久留米）',
-        arcade: '商店街エリア（六ツ門・一番街）',
-        residential: '住宅エリア（南久留米）'
-      };
-
-      const promoLabels = {
-        word_of_mouth: '友達紹介口コミ',
-        school_flyer: '校門前のチラシ配布',
-        coupon: '学割クーポン配布',
-        sns_reels: 'TikTok/リール動画拡散'
-      };
+      const locationLabels = { gate: '学校エリア（久留米高校前周辺）', station: '駅前・オフィスエリア（西鉄久留米）', arcade: '商店街エリア（六ツ門・一番街）', residential: '住宅エリア（南久留米）' };
+      const promoLabels = { word_of_mouth: '友達紹介口コミ', school_flyer: '校門前のチラシ配布', coupon: '学割クーポン配布', sns_reels: 'TikTok/リール動画拡散' };
 
       let html = '';
 
       html += storesList.map(store => {
         const sharePercent = totalVotes > 0 ? Math.round(((store.votes || 0) / totalVotes) * 100) : 0;
         const subProducts = Array.isArray(store.subProducts) ? store.subProducts : [];
-        const isSelected = window.selectedStoreForVote === store.id;
+        const isStoreActive = window.selectedBasket && window.selectedBasket.storeId === store.id;
 
         return `
           <div class="bg-white rounded-3xl p-5 shadow-sm border-2 transition flex flex-col justify-between ${
-            isSelected ? 'border-orange-500 ring-2 ring-orange-300 bg-orange-50/20' : 'border-slate-200 hover:border-slate-300'
+            isStoreActive ? 'border-orange-500 ring-2 ring-orange-200 bg-orange-50/10' : 'border-slate-200 hover:border-slate-300'
           }">
             <div>
               <div class="flex items-center justify-between mb-2">
@@ -1618,56 +1687,48 @@
                 </div>
                 <div class="min-w-0">
                   <h3 class="font-black text-base text-slate-900 leading-tight truncate">${store.storeName || ''}</h3>
-                  <p class="text-[11px] font-bold text-orange-600 mt-0.5 line-clamp-1">★看板: ${store.productName || ''}</p>
+                  <span class="text-[10px] text-slate-400">クリックして商品を選択してください</span>
                 </div>
               </div>
 
-              <div class="bg-amber-50/50 rounded-2xl p-3 my-3 border border-orange-100 space-y-2 text-[11px]">
-                <div class="flex items-center justify-between">
-                  <span class="text-slate-600 font-bold">看板メニュー価格:</span>
-                  <span class="font-mono font-black text-rose-600 text-xs">¥${(store.price || 0).toLocaleString()}</span>
-                </div>
+              <div class="bg-slate-50 rounded-2xl p-3 my-3 border border-slate-200 space-y-1.5 text-xs">
+                <span class="text-[10px] font-bold text-slate-500 block mb-1">🛒 この店で買う商品を選ぶ（複数選択可）:</span>
 
-                ${subProducts.length > 0 ? `
-                  <div class="pt-1.5 border-t border-amber-200/60">
-                    <span class="text-[10px] font-bold text-slate-500 block mb-1">サイド・駄菓子セット:</span>
-                    <div class="flex flex-wrap gap-1">
-                      ${subProducts.map(sp => `
-                        <span class="text-[10px] bg-white text-slate-700 font-bold px-2 py-0.5 rounded-md border border-amber-200/80 shadow-2xs">
-                          ${sp.name} <span class="text-orange-600 font-mono">¥${sp.price}</span>
-                        </span>
-                      `).join('')}
-                    </div>
+                <label class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 hover:border-orange-400 cursor-pointer transition">
+                  <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <input type="checkbox" data-store-id="${store.id}" data-is-main="true" onchange="handleProductSelection('${store.id}')" class="rounded text-orange-600 focus:ring-orange-500 w-4 h-4 cursor-pointer">
+                    <span class="font-bold text-slate-800 text-[11px] truncate">★ ${store.productName || '看板商品'}</span>
                   </div>
-                ` : ''}
+                  <span class="font-mono font-black text-rose-600 text-xs shrink-0 ml-1">¥${(store.price || 0).toLocaleString()}</span>
+                </label>
 
-                <div class="flex items-center justify-between pt-1 border-t border-amber-200/40 text-[10px]">
-                  <span class="text-slate-400 font-medium">販促:</span>
-                  <span class="font-bold text-slate-600">${promoLabels[store.promo] || store.promo || '店頭'}</span>
-                </div>
+                ${subProducts.map((sp, idx) => `
+                  <label class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 hover:border-orange-400 cursor-pointer transition">
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                      <input type="checkbox" data-store-id="${store.id}" data-is-main="false" data-sub-idx="${idx}" onchange="handleProductSelection('${store.id}', ${idx})" class="rounded text-orange-600 focus:ring-orange-500 w-4 h-4 cursor-pointer">
+                      <span class="font-medium text-slate-700 text-[11px] truncate">+ ${sp.name || '商品'}</span>
+                    </div>
+                    <span class="font-mono font-bold text-orange-600 text-xs shrink-0 ml-1">¥${(sp.price || 0).toLocaleString()}</span>
+                  </label>
+                `).join('')}
+              </div>
+
+              <div id="basket-summary-${store.id}" class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 mb-2">
+                <span class="text-[11px] text-slate-400">商品にチェックを入れると合計が表示されます</span>
               </div>
             </div>
 
-            <div class="pt-3 border-t border-slate-100">
-              <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
-                <span>得票数: <strong class="text-slate-800 font-black text-sm">${store.votes || 0}</strong> 票</span>
-                <span class="text-orange-600 font-black">${sharePercent}% シェア</span>
-              </div>
-              <button onclick="selectStoreForVote('${store.id}')" class="w-full py-2.5 rounded-2xl font-black text-xs shadow-md transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer ${
-                isSelected 
-                  ? 'bg-orange-600 text-white ring-2 ring-orange-300' 
-                  : 'bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white'
-              }">
-                <i data-lucide="${isSelected ? 'check-circle-2' : 'mouse-pointer-click'}" class="w-4 h-4"></i>
-                ${isSelected ? '選択中！(下のSTEP 3へ)' : 'この店を選択して理由を書く'}
-              </button>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+              <span>購入者数: <strong class="text-slate-800 font-bold">${store.votes || 0}人</strong></span>
+              <span class="text-orange-600 font-black">${sharePercent}% シェア</span>
             </div>
           </div>
         `;
       }).join('');
 
-      const isNoneSelected = window.selectedStoreForVote === '__none__';
+      const isNoneSelected = window.selectedBasket === '__none__';
       const noneShare = totalVotes > 0 ? Math.round(((window.noneVotes || 0) / totalVotes) * 100) : 0;
+      const curPersona = personasMaster.find(p => p.id === window.selectedPersona) || personasMaster[0];
 
       html += `
         <div class="bg-gradient-to-b from-slate-50 to-white rounded-3xl p-5 shadow-sm border-2 transition flex flex-col justify-between ${
@@ -1676,19 +1737,50 @@
           <div>
             <div class="flex items-center justify-between mb-2">
               <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700">選択肢</span>
-              <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">※未開拓需要（機会損失）</span>
+              <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">※未開拓需要（機会損失データ）</span>
             </div>
 
             <div class="flex items-center gap-3 my-2">
               <div class="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-300 flex items-center justify-center text-2xl shrink-0">🏠</div>
               <div>
-                <h3 class="font-black text-base text-slate-800 leading-tight">該当なし（直帰・買わない）</h3>
-                <p class="text-[11px] text-slate-500 mt-0.5">「予算に合わない」「欲しいものがない」</p>
+                <h3 class="font-black text-base text-slate-800 leading-tight">買わずに直帰（該当なし）</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5">「予算に合わない」「買いたい商品がない」</p>
               </div>
             </div>
 
-            <div class="bg-slate-100/70 rounded-2xl p-3 my-3 border border-slate-200 space-y-1.5 text-[11px] text-slate-600 leading-relaxed">
-              <p>行きたい店舗が見当たらない場合や、お小遣い・予算をオーバーしている場合はこちらを選択してください。</p>
+            <div id="none-details-form" class="${isNoneSelected ? '' : 'hidden'} bg-rose-50/70 rounded-2xl p-3.5 my-3 border border-rose-200 space-y-2.5 text-xs text-slate-700">
+              <div class="flex items-center justify-between border-b border-rose-200/60 pb-1.5">
+                <span class="font-extrabold text-[11px] text-rose-800 flex items-center gap-1">
+                  📋 直帰したペルソナの要望（未開拓データ）
+                </span>
+                <span class="text-[10px] text-slate-400 font-mono">${curPersona.name}</span>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600 mb-0.5">① 本日探していた商品ジャンル</label>
+                <select id="none-category" onchange="syncNoneDetailsPreview()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:ring-1 focus:ring-rose-500">
+                  <option value="dagashi">駄菓子・小額おやつ（10円〜数十円）</option>
+                  <option value="snack">軽食・がっつりフード（満腹感重視）</option>
+                  <option value="cafe">カフェ・スイーツ・ドリンク（映え・トーク）</option>
+                  <option value="study">自習・コワーキング（静か・Wi-Fi・電源）</option>
+                  <option value="convenience">売店・即時テイクアウト（スピード）</option>
+                  <option value="other">その他（自由に理由へ記入）</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600 mb-0.5">② 今日使いたかった上限予算 (円)</label>
+                <input type="number" id="none-budget" value="${curPersona.defaultBudget || 300}" min="0" max="10000" step="10" oninput="syncNoneDetailsPreview()" placeholder="例: 150" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-mono font-bold bg-white focus:ring-1 focus:ring-rose-500">
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600 mb-0.5">③ 買えなかった理由・要望（その他）</label>
+                <input type="text" id="none-reason-detail" oninput="syncNoneDetailsPreview()" placeholder="例: 100円以内で買える温かいフードが欲しかった" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:ring-1 focus:ring-rose-500">
+              </div>
+            </div>
+
+            <div class="${isNoneSelected ? 'hidden' : 'block'} bg-slate-100/70 rounded-2xl p-3 my-3 border border-slate-200 text-[11px] text-slate-600 leading-relaxed">
+              <p>魅力的な商品が見当たらない場合や、お小遣い・予算オーバーの場合はこちらを選んでペルソナの要望を入力してください。</p>
             </div>
           </div>
 
@@ -1697,11 +1789,11 @@
               <span>直帰選択数: <strong class="text-slate-800 font-black text-sm">${window.noneVotes || 0}</strong> 票</span>
               <span class="text-rose-600 font-black">${noneShare}% 離脱率</span>
             </div>
-            <button onclick="selectStoreForVote('__none__')" class="w-full py-2.5 rounded-2xl font-black text-xs shadow-md transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer ${
+            <button type="button" onclick="selectNoneForVote()" class="w-full py-2.5 rounded-2xl font-black text-xs shadow-md transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer ${
               isNoneSelected ? 'bg-rose-600 text-white ring-2 ring-rose-300' : 'bg-slate-700 hover:bg-slate-800 text-white'
             }">
               <i data-lucide="${isNoneSelected ? 'check-circle-2' : 'home'}" class="w-4 h-4"></i>
-              ${isNoneSelected ? '選択中！(下のSTEP 3へ)' : '「該当なし」を選択して理由を書く'}
+              ${isNoneSelected ? '選択中！(要望を確認して下のSTEP 3へ)' : '買わずに直帰する（ペルソナ情報を入力）'}
             </button>
           </div>
         </div>
@@ -1711,6 +1803,7 @@
       if (window.lucide) lucide.createIcons();
     };
 
+    // --- クラス模擬投票 ---
     window.simulateBatchVotes = function(count) {
       if (!window.stores || window.stores.length === 0) return;
 
@@ -1740,7 +1833,7 @@
         if (rnd < noneWeight) {
           window.noneVotes = (window.noneVotes || 0) + 1;
           if (!window.noneReasons) window.noneReasons = [];
-          window.noneReasons.unshift('予算オーバーや好みのメニューがなかったため直帰');
+          window.noneReasons.unshift(`【求めたジャンル: ${randPersona.defaultCategory} / 予算: ¥${randPersona.defaultBudget}】 ${randPersona.name}: 欲しいメニューがなく予算オーバーのため直帰`);
         } else {
           rnd -= noneWeight;
           let chosenIdx = 0;
@@ -1748,9 +1841,22 @@
             if (rnd < weights[j]) { chosenIdx = j; break; }
             rnd -= weights[j];
           }
-          window.stores[chosenIdx].votes = (window.stores[chosenIdx].votes || 0) + 1;
-          if (!window.stores[chosenIdx].reasons) window.stores[chosenIdx].reasons = [];
-          window.stores[chosenIdx].reasons.unshift(sampleReasonList[Math.floor(Math.random() * sampleReasonList.length)]);
+          const st = window.stores[chosenIdx];
+          st.votes = (st.votes || 0) + 1;
+
+          let simRev = Number(st.price) || 0;
+          let simVar = Number(st.unitVariableCost) || 0;
+          if (st.subProducts && st.subProducts.length > 0 && Math.random() > 0.4) {
+            const randSub = st.subProducts[Math.floor(Math.random() * st.subProducts.length)];
+            simRev += Number(randSub.price) || 0;
+            simVar += Number(randSub.unitVariableCost) || 0;
+          }
+
+          st.cumulativeRevenue = (st.cumulativeRevenue || 0) + simRev;
+          st.cumulativeVarCost = (st.cumulativeVarCost || 0) + simVar;
+
+          if (!st.reasons) st.reasons = [];
+          st.reasons.unshift(sampleReasonList[Math.floor(Math.random() * sampleReasonList.length)]);
         }
       }
 
@@ -1758,23 +1864,25 @@
       renderVotingStores();
       renderTeamsList();
       updateDashboard();
-      showToast(`クラス35人分の久留米ペルソナ投票（直帰含む）を実行しました！`);
+      showToast(`クラス35人分の久留米ペルソナ買い物投票（直帰含む）を実行しました！`);
     };
 
     window.resetVotesOnly = function() {
       (window.stores || []).forEach(s => {
         s.votes = 0;
+        s.cumulativeRevenue = 0;
+        s.cumulativeVarCost = 0;
         s.reasons = [];
       });
       window.noneVotes = 0;
       window.noneReasons = [];
-      window.selectedStoreForVote = null;
+      window.selectedBasket = null;
       updateSelectedStorePreview();
       window.saveStorage();
       renderVotingStores();
       renderTeamsList();
       updateDashboard();
-      showToast('投票数と理由をリセットしました');
+      showToast('投票数・売上実績・理由をリセットしました');
     };
 
     function isStoreAffectedByEvent(store, persona = null) {
@@ -1841,12 +1949,7 @@
       const storesVotes = storesList.reduce((sum, s) => sum + (s.votes || 0), 0);
       const totalVotes = storesVotes + (window.noneVotes || 0);
 
-      const placeDisplayNames = {
-        gate: '学校エリア（久留米高校前）',
-        station: '駅前（西鉄久留米）',
-        arcade: '商店街（六ツ門・一番街）',
-        residential: '住宅エリア（南久留米）'
-      };
+      const placeDisplayNames = { gate: '学校エリア（久留米高校前）', station: '駅前（西鉄久留米）', arcade: '商店街（六ツ門・一番街）', residential: '住宅エリア（南久留米）' };
 
       const results = storesList.map(store => {
         const current = computeFinancialsForStore(store, !!window.currentEvent);
@@ -1973,11 +2076,12 @@
             <div class="p-3.5 rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/40 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between mb-1.5">
-                  <h4 class="font-black text-xs text-rose-800 truncate">🏠 該当なし（直帰生徒の声）</h4>
-                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-200 text-rose-900">${window.noneVotes}票の不満</span>
+                  <h4 class="font-black text-xs text-rose-800 truncate">🏠 買わずに直帰（未開拓ニーズ）</h4>
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-200 text-rose-900">${window.noneVotes}票の要望</span>
                 </div>
-                <p class="text-[11px] text-rose-700 italic leading-relaxed">「${window.noneReasons[0]}」</p>
+                <p class="text-[11px] text-rose-700 font-bold leading-relaxed">「${window.noneReasons[0]}」</p>
               </div>
+              <span class="text-[9px] text-rose-500 font-bold mt-2">※改善のための重要フィードバック</span>
             </div>
           `;
         }
@@ -2024,7 +2128,7 @@
         <div class="bg-slate-800/80 rounded-xl p-3 border border-indigo-700/60">
           <div class="text-[10px] text-indigo-300 font-bold flex justify-between">
             <span>① 売上高の変動</span>
-            <span class="text-[9px] text-slate-400">客数×客単価</span>
+            <span class="text-[9px] text-slate-400">客数×実効客単価</span>
           </div>
           <div class="text-base font-black text-white font-mono mt-1">¥${cur.revenue.toLocaleString()}</div>
           <div class="text-[11px] mt-1 pt-1 border-t border-slate-700/80 flex justify-between">
@@ -2139,6 +2243,214 @@
         });
       }
     }
+
+    // --- 管理者専用機能 ---
+    window.openAdminModal = function() {
+      const inputEl = document.getElementById('admin-pass-input');
+      if (inputEl) inputEl.value = '';
+      document.getElementById('admin-auth-modal').classList.remove('hidden');
+      if (inputEl) inputEl.focus();
+    };
+
+    window.closeAdminAuthModal = function() {
+      document.getElementById('admin-auth-modal').classList.add('hidden');
+    };
+
+    window.verifyAdminPassword = function() {
+      const inputEl = document.getElementById('admin-pass-input');
+      if (!inputEl) return;
+      const input = inputEl.value.trim();
+      const currentPass = (localStorage.getItem('market_admin_pass') || 'teacher2026').trim();
+
+      if (input === currentPass) {
+        closeAdminAuthModal();
+        openAdminConsole();
+        showToast('管理者としてログインしました');
+      } else {
+        alert('パスワードが違います。');
+        inputEl.focus();
+      }
+    };
+
+    function openAdminConsole() {
+      const container = document.getElementById('admin-target-stores-list');
+      if (container) {
+        container.innerHTML = (window.stores || []).map(store => `
+          <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+            <input type="checkbox" name="admin-target-store" value="${store.id}" class="rounded text-indigo-600 focus:ring-indigo-500">
+            <span class="font-bold text-slate-800">${store.teamName}</span>
+            <span class="text-[10px] text-slate-500 truncate">(${store.storeName})</span>
+          </label>
+        `).join('');
+      }
+
+      const curText = document.getElementById('admin-current-event-text');
+      if (curText) {
+        if (window.currentEvent) {
+          curText.innerHTML = `<span class="text-rose-600 font-bold">${window.currentEvent.icon} ${window.currentEvent.title}</span> (売上ブースト: ×${window.currentEvent.boostRate || 1.0} / 原価: ×${window.currentEvent.costMultiplier || 1.0})`;
+        } else {
+          curText.textContent = '平常運転（突発イベント未発動）';
+        }
+      }
+
+      renderMonthBanner();
+      document.getElementById('admin-console-modal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    window.closeAdminConsoleModal = function() {
+      document.getElementById('admin-console-modal').classList.add('hidden');
+    };
+
+    window.adminChangeMonth = function(delta) {
+      let m = (window.currentMonth || 4) + delta;
+      if (m < 4) m = 4;
+      if (m > 9) m = 9;
+      window.currentMonth = m;
+      renderMonthBanner();
+      window.saveStorage();
+      updateDashboard();
+      showToast(`営業月度を「${m}月」に進めました！`);
+    };
+
+    window.adminSetMonth = function(m) {
+      window.currentMonth = m;
+      renderMonthBanner();
+      window.saveStorage();
+      updateDashboard();
+      showToast(`営業月度を「${m}月」に設定しました！`);
+    };
+
+    window.adminLoadSampleStores = function() {
+      window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
+      window.currentEvent = null;
+      window.noneVotes = 0;
+      window.noneReasons = [];
+      window.selectedBasket = null;
+      updateSelectedStorePreview();
+      window.saveStorage();
+      safeRenderAll();
+      clearEvent();
+      closeAdminConsoleModal();
+      showToast('サンプル4店舗データを全員に適用しました');
+    };
+
+    window.adminResetAllData = function() {
+      if (!confirm('本当に全店舗・投票データを初期化しますか？クラウド上のデータも完全にリセットされます。')) return;
+      window.stores = [];
+      window.currentEvent = null;
+      window.currentMonth = 4;
+      window.noneVotes = 0;
+      window.noneReasons = [];
+      window.selectedBasket = null;
+      updateSelectedStorePreview();
+      cancelEdit();
+      window.saveStorage();
+      safeRenderAll();
+      clearEvent();
+      closeAdminConsoleModal();
+      showToast('全データを初期化し、4月にリセットしました');
+    };
+
+    window.selectTargetPreset = function(preset) {
+      const checkboxes = document.querySelectorAll('input[name="admin-target-store"]');
+      checkboxes.forEach(cb => {
+        const store = (window.stores || []).find(s => s.id === cb.value);
+        if (preset === 'all') cb.checked = true;
+        else if (store && store.location === preset) cb.checked = true;
+        else cb.checked = false;
+      });
+    };
+
+    window.loadPresetToAdminForm = function(presetId) {
+      const p = marketEventsMaster.find(e => e.id === presetId);
+      if (!p) return;
+      document.getElementById('admin-evt-icon').value = p.icon;
+      document.getElementById('admin-evt-title').value = p.title;
+      document.getElementById('admin-evt-desc').value = p.desc;
+      document.getElementById('admin-evt-boost').value = p.boostRate || 1.0;
+      document.getElementById('admin-evt-costmult').value = p.costMultiplier || 1.0;
+      document.getElementById('admin-evt-advice').value = p.advice;
+
+      if (p.id === 'exam') selectTargetPreset('all');
+      else if (p.id === 'rain') selectTargetPreset('gate');
+      else if (p.id === 'buzz') selectTargetPreset('arcade');
+      else selectTargetPreset('all');
+    };
+
+    window.adminApplyCustomEvent = function() {
+      const title = document.getElementById('admin-evt-title').value.trim();
+      const desc = document.getElementById('admin-evt-desc').value.trim();
+      const icon = document.getElementById('admin-evt-icon').value.trim() || '⚡';
+      const boostRate = parseFloat(document.getElementById('admin-evt-boost').value) || 1.0;
+      const costMultiplier = parseFloat(document.getElementById('admin-evt-costmult').value) || 1.0;
+      const advice = document.getElementById('admin-evt-advice').value.trim() || '市場の変化を観察し、4Pの修正案を考えましょう。';
+
+      if (!title) {
+        alert('イベント名を入力してください。');
+        return;
+      }
+
+      const selectedStoreIds = Array.from(document.querySelectorAll('input[name="admin-target-store"]:checked')).map(cb => cb.value);
+
+      window.currentEvent = {
+        id: 'admin_custom_' + Date.now(),
+        title: title,
+        icon: icon,
+        desc: desc || '外部環境に急激な市場変動が発生しました。',
+        boostRate: boostRate,
+        costMultiplier: costMultiplier,
+        targetStoreIds: selectedStoreIds.length > 0 ? selectedStoreIds : null,
+        advice: advice
+      };
+
+      closeAdminConsoleModal();
+      applyEventUI();
+      window.saveStorage();
+      showToast(`管理者設定: 「${title}」を発動しました！`);
+    };
+
+    window.applyEventUI = function() {
+      const voteBanner = document.getElementById('voting-event-alert');
+      if (voteBanner && window.currentEvent) {
+        voteBanner.classList.remove('hidden');
+        document.getElementById('voting-event-title').textContent = `${window.currentEvent.icon} ${window.currentEvent.title}`;
+        document.getElementById('voting-event-desc').textContent = window.currentEvent.desc;
+      }
+      const pingDot = document.getElementById('event-active-dot');
+      if (pingDot && window.currentEvent) pingDot.classList.remove('hidden');
+
+      updateDashboard();
+    };
+
+    window.clearEvent = function() {
+      window.currentEvent = null;
+      const voteBanner = document.getElementById('voting-event-alert');
+      if (voteBanner) voteBanner.classList.add('hidden');
+      const pingDot = document.getElementById('event-active-dot');
+      if (pingDot) pingDot.classList.add('hidden');
+      
+      window.saveStorage();
+      showToast('突発イベントを解除しました');
+      updateDashboard();
+    };
+
+    window.adminResetEvent = function() {
+      clearEvent();
+      closeAdminConsoleModal();
+    };
+
+    window.changeAdminPassword = function() {
+      const newP = document.getElementById('admin-new-pass').value.trim();
+      if (newP.length < 4) {
+        alert('パスワードは4文字以上で入力してください。');
+        return;
+      }
+      adminPassword = newP;
+      localStorage.setItem('market_admin_pass', newP);
+      document.getElementById('admin-new-pass').value = '';
+      alert('管理者パスワードを更新しました。');
+    };
 
     let toastTimeout = null;
     function showToast(msg) {
