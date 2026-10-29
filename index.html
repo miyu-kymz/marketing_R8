@@ -5,6 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MarketPBL | 久留米商圏 営業利益バトル＆損益分析シミュレーター</title>
 
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- ======================================================== -->
+  <!-- 核心スクリプト (全関数・マスターデータを先行定義) -->
+  <!-- ======================================================== -->
+  <script>
+    // --- マスターデータ ---
+    window.monthSeasonsMaster = {
+      4: { name: '4月', title: '新学期・新歓・出会いの春商戦', icon: '🌸', desc: '新入生の部活探し＆友達づくりで買い食い・カフェ利用が急増！全店客数+15%の春特需！', impactLabel: '全店客数 +15% / 通常原価', globalTrafficMult: 1.15, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: {} },
+      5: { name: '5月', title: 'GW・初夏・高校総体予選', icon: '🌿', desc: '気温上昇で冷たいドリンク・スイーツ需要急増！部活生・休日ファミリー客が活発化。', impactLabel: 'カフェ・ドリンク客数 +25% / 通常原価', globalTrafficMult: 1.05, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: { cafe: 1.25 } },
+      6: { name: '6月', title: '梅雨・期末テスト期間', icon: '🌧️', desc: '雨天移動難で学校前・駅前至近に客集中。部活停止で自習派急増。湿気ロスで変動費+5%。', impactLabel: '自習特化 +20% / 変動費 +5%', globalTrafficMult: 0.95, varCostMult: 1.05, fixedUtilitiesMult: 1.0, categoryBoost: { study: 1.25 } },
+      7: { name: '7月', title: '期末明け猛暑・夏休み直前', icon: '☀️', desc: 'テスト明けの開放感で放課後の長居がピーク！猛暑で冷菓特需、エアコンで光熱費+15%。', impactLabel: '冷菓・軽食 +20% / 光熱費 +15%', globalTrafficMult: 1.10, varCostMult: 1.0, fixedUtilitiesMult: 1.15, categoryBoost: { cafe: 1.20, snack: 1.10 } },
+      8: { name: '8月', title: '夏休み・筑後川花火大会特需', icon: '🎆', desc: '高校休みで学校前は大打撃(-60%)！一方、西鉄久留米駅前・六ツ門は祭り特大特需(+50%)！', impactLabel: '駅前・商店街 +50% / 学校前 -60%', globalTrafficMult: 0.90, varCostMult: 1.10, fixedUtilitiesMult: 1.20, locationBoost: { station: 1.50, arcade: 1.40, gate: 0.40, residential: 0.85 } },
+      9: { name: '9月', title: '2学期開始・体育祭準備', icon: '🍁', desc: '体育祭準備で居残り生徒多数！部活生の食欲旺盛、がっつりフード・大容量ドリンク特需！', impactLabel: 'がっつり軽食 +25% / 通常固定費', globalTrafficMult: 1.15, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: { snack: 1.25 } }
+    };
+
+    window.rentMap = { gate: 60000, station: 100000, arcade: 75000, residential: 40000 };
+
+    window.personasMaster = [
+      { id: 'sports', name: '① 腹ペコ部活生', personName: '佐藤 陸 (高2・運動部)', icon: '⚽', budget: '350円〜500円', defaultBudget: 500, defaultCategory: 'snack' },
+      { id: 'trend', name: '② トレンド女子', personName: '高橋 結菜 (高2・文化部/帰宅部)', icon: '🧋', budget: '600円〜900円', defaultBudget: 750, defaultCategory: 'cafe' },
+      { id: 'study', name: '③ 勉強・作業派', personName: '渡辺 蓮 (高3・進学希望/テスト前)', icon: '📖', budget: '400円〜600円', defaultBudget: 500, defaultCategory: 'study' },
+      { id: 'cost', name: '④ コスパ節約派', personName: '田中 葵 (高1・お小遣い月3,000円)', icon: '👛', budget: '30円〜300円', defaultBudget: 150, defaultCategory: 'dagashi' },
+      { id: 'commuter', name: '⑤ 駅通勤者', personName: '木村 恵美 (30代・西鉄久留米利用の会社員)', icon: '💼', budget: '700円〜1,200円', defaultBudget: 900, defaultCategory: 'convenience' },
+      { id: 'family', name: '⑥ 近隣ファミリー', personName: '山本 友香 (40代・小学生連れ)', icon: '👨‍👩‍👧', budget: '1,000円〜1,500円', defaultBudget: 1200, defaultCategory: 'snack' }
+    ];
+
+    window.marketEventsMaster = [
+      { id: 'exam', title: '期末テスト1週間前突入！', icon: '📝', desc: '部活動停止で自習・作業需要が急増！運動部の買い食いは減少。', boostPersona: 'study', boostRate: 2.3, costMultiplier: 1.0, advice: '静寂環境・Wi-Fi完備の店舗に客が集中します。' },
+      { id: 'rain', title: 'ゲリラ豪雨・長雨警報発令！', icon: '🌧️', desc: '大雨のため移動困難！学校エリアと西鉄久留米駅前の至近店舗に客が集中。', boostLocations: ['gate', 'station'], boostRate: 1.85, costMultiplier: 1.0, advice: '至近立地が圧倒的有利。遠方の商店街や住宅街は集客対策が必要。' },
+      { id: 'buzz', title: '久留米の高校生リールで大バズ！', icon: '📱', desc: 'TikTok・リール動画で話題沸騰！映え系スイーツ・トレンド店舗に長蛇の列！', boostPersona: 'trend', boostRate: 2.6, costMultiplier: 1.0, advice: 'SNS販促とビジュアル重視の店舗の売上が爆発します。' },
+      { id: 'cost_up', title: '原材料・包材費 25%高騰！', icon: '📉', desc: '仕入材料費が25%急騰！全店舗の限界利益を直撃！', boostRate: 1.0, costMultiplier: 1.25, advice: '変動費の高い店舗は利益が激減します。客単価UPや付加価値ピボットが急務。' }
+    ];
+
+    window.defaultSampleStores = [
+      { id: 'store_1', teamName: '1班 (男子運動部)', storeName: '爆盛からあげ天国 ましまし亭', icon: '🍗', category: 'snack', productName: 'メガ盛りから揚げ丼（特製マヨ付き）', quality: 'budget', vibe: 'chill', price: 450, unitVariableCost: 170, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'school_flyer', targetPersona: 'sports', votes: 14, cumulativeRevenue: 6300, cumulativeVarCost: 2380, reasons: ['部活終わりに久留米高校前で即買える！ボリュームがすごい！'], subProducts: [{ name: '山盛りフライドポテト', price: 180, unitVariableCost: 45 }, { name: '部活応援メガ烏龍茶', price: 120, unitVariableCost: 20 }] },
+      { id: 'store_2', teamName: '2班 (トレンド企画部)', storeName: 'Chill & Sweets アオハルスタンド', icon: '🍓', category: 'cafe', productName: 'いちご生クリームもちもちクレープ', quality: 'premium', vibe: 'aesthetic', price: 580, unitVariableCost: 185, location: 'arcade', fixedRent: 75000, fixedLabor: 50000, fixedUtilities: 25000, promo: 'sns_reels', targetPersona: 'trend', votes: 16, cumulativeRevenue: 9280, cumulativeVarCost: 2960, reasons: ['六ツ門・シティプラザ近くで友達と写真撮りながら喋るのに最高！'], subProducts: [{ name: 'グラデーションフルーツソーダ', price: 380, unitVariableCost: 75 }] },
+      { id: 'store_3', teamName: '3班 (特進サポート隊)', storeName: '自習＆フリードリンク Focus CAFE', icon: '📚', category: 'study', productName: '全席電源完備・静寂ブース＆珈琲バー', quality: 'standard', vibe: 'quiet', price: 400, unitVariableCost: 80, location: 'residential', fixedRent: 40000, fixedLabor: 30000, fixedUtilities: 25000, promo: 'word_of_mouth', targetPersona: 'study', votes: 9, cumulativeRevenue: 3600, cumulativeVarCost: 720, reasons: ['南久留米の住宅街にあって静か。Wi-Fiと電源完備でテスト勉強に籠もれる。'], subProducts: [{ name: '集中持続ブドウ糖スナック', price: 150, unitVariableCost: 45 }] },
+      { id: 'store_4', teamName: '4班 (駄菓子本舗)', storeName: '昭和レトロ堂', icon: '🍭', category: 'dagashi', productName: '棒付き水あめ', quality: 'budget', vibe: 'nostalgic', price: 30, unitVariableCost: 18, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'word_of_mouth', targetPersona: 'cost', votes: 11, cumulativeRevenue: 1320, cumulativeVarCost: 660, reasons: ['10円や30円でいろいろ買えるのが最高！'], subProducts: [{ name: '10円チョコ', price: 10, unitVariableCost: 6 }, { name: 'ミニラムネ', price: 20, unitVariableCost: 10 }, { name: 'パチパチキャンディ', price: 30, unitVariableCost: 15 }] }
+    ];
+
+    // --- グローバル状態変数 ---
+    window.stores = [];
+    window.selectedPersona = 'sports';
+    window.selectedBasket = null;
+    window.currentEvent = null;
+    window.currentMonth = 4;
+    window.noneVotes = 0;
+    window.noneReasons = [];
+    window.adminPassword = localStorage.getItem('market_admin_pass') || 'teacher2026';
+    window.chartMarketShareInstance = null;
+    window.chartFinancialsInstance = null;
+
+    // --- 先行定義：タブ切り替え（ボタン無反応を防止） ---
+    window.switchTab = function(targetTabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+
+      const activeSection = document.getElementById(targetTabId);
+      if (activeSection) activeSection.classList.remove('hidden');
+
+      const activeBtn = document.querySelector(`[data-tab="${targetTabId}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-600');
+      }
+
+      if (targetTabId === 'tab-simulation') updateDashboard();
+      else if (targetTabId === 'tab-voting') renderVotingStores();
+      else if (targetTabId === 'tab-map') renderMapPins();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (window.lucide) lucide.createIcons();
+    };
+  </script>
+
   <!-- Firebase SDK (CDN) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -27,14 +111,27 @@
     onValue(marketRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        window.stores = Array.isArray(data.stores) ? data.stores : [];
+        // 店舗データが空で届いた場合でも、ローカルストレージに店舗があれば保護する
+        if (Array.isArray(data.stores) && data.stores.length > 0) {
+          window.stores = data.stores;
+        } else if (!window.stores || window.stores.length === 0) {
+          const localSaved = localStorage.getItem('market_sim_stores_v5');
+          if (localSaved) {
+            try {
+              const parsed = JSON.parse(localSaved);
+              window.stores = Array.isArray(parsed.stores) && parsed.stores.length > 0 ? parsed.stores : (Array.isArray(data.stores) ? data.stores : []);
+            } catch(e) { window.stores = Array.isArray(data.stores) ? data.stores : []; }
+          } else {
+            window.stores = Array.isArray(data.stores) ? data.stores : [];
+          }
+        }
+
         window.currentEvent = data.currentEvent || null;
         window.currentMonth = Number(data.currentMonth) || 4;
         window.noneVotes = Number(data.noneVotes) || 0;
         window.noneReasons = Array.isArray(data.noneReasons) ? data.noneReasons : [];
         
-        try { localStorage.setItem('market_sim_stores_v5', JSON.stringify(data)); } catch(e) {}
-
+        try { localStorage.setItem('market_sim_stores_v5', JSON.stringify({ stores: window.stores, currentMonth: window.currentMonth, noneVotes: window.noneVotes, noneReasons: window.noneReasons })); } catch(e) {}
         if (typeof window.safeRenderAll === 'function') window.safeRenderAll();
         
         if (window.currentEvent) {
@@ -65,22 +162,9 @@
     };
   </script>
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
-    body { font-family: 'Noto Sans JP', 'Plus Jakarta Sans', sans-serif; }
     .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 9999px; }
-    .kurume-map-bg {
-      background-color: #f1f5f9;
-      background-image: radial-gradient(#94a3b8 0.75px, transparent 0.75px), linear-gradient(to right, rgba(226, 232, 240, 0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(226, 232, 240, 0.5) 1px, transparent 1px);
-      background-size: 24px 24px, 48px 48px, 48px 48px;
-    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
@@ -93,7 +177,7 @@
         <div>
           <div class="flex items-center gap-2">
             <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 font-extrabold shadow-sm">久留米商圏PBL</span>
-            <span class="text-xs text-blue-200">商品別購買投票・損益分析シミュレーター</span>
+            <span class="text-xs text-blue-200">商品別数量選択・損益分析シミュレーター</span>
           </div>
           <h1 class="text-base sm:text-lg font-black tracking-tight">久留米エリア 営業利益バトル＆商品購買シミュレーター</h1>
         </div>
@@ -104,7 +188,7 @@
           <span class="text-[10px] text-amber-300 font-bold uppercase tracking-wider">営業月度</span>
           <span id="header-month-badge" class="text-xs sm:text-sm font-black text-white">4月 (春商戦)</span>
         </div>
-        <button onclick="openAdminModal()" class="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+        <button type="button" onclick="openAdminModal()" class="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-sm cursor-pointer">
           <i data-lucide="shield-check" class="w-4 h-4"></i>
           🔐 管理者設定
         </button>
@@ -132,20 +216,20 @@
   <div class="bg-white border-b border-slate-200 sticky top-[58px] z-30 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto custom-scrollbar">
       <div class="flex space-x-1 sm:space-x-2 py-2">
-        <button type="button" class="nav-tab active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 bg-indigo-600 text-white shadow-sm transition cursor-pointer" data-tab="tab-teams">
+        <button type="button" onclick="switchTab('tab-teams')" class="nav-tab active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 bg-indigo-600 text-white shadow-sm transition cursor-pointer" data-tab="tab-teams">
           <i data-lucide="store" class="w-4 h-4"></i>
           ① 4P店舗設定 (<span id="team-badge-count">0</span>)
         </button>
-        <button type="button" class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-map">
+        <button type="button" onclick="switchTab('tab-map')" class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-map">
           <i data-lucide="map" class="w-4 h-4 text-blue-500"></i>
           ② 久留米商圏マップ
         </button>
-        <button type="button" class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-voting">
+        <button type="button" onclick="switchTab('tab-voting')" class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-voting">
           <i data-lucide="shopping-cart" class="w-4 h-4 text-orange-500"></i>
-          ③ 放課後買い物投票（商品を選ぶ）
+          ③ 放課後買い物投票（商品・個数を選ぶ）
           <span id="vote-counter-badge" class="px-1.5 py-0.2 rounded-full bg-orange-100 text-orange-700 text-[10px] font-black">0票</span>
         </button>
-        <button type="button" class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-simulation">
+        <button type="button" onclick="switchTab('tab-simulation')" class="nav-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer" data-tab="tab-simulation">
           <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i>
           ④ 月次損益分析＆ランキング
           <span id="event-active-dot" class="hidden w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
@@ -337,7 +421,7 @@
               <i data-lucide="layout-grid" class="w-5 h-5 text-indigo-600"></i>
               参入中の店舗一覧（コスト構造比較）
             </h2>
-            <button onclick="switchTab('tab-voting')" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-black px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+            <button type="button" onclick="switchTab('tab-voting')" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-black px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
               <i data-lucide="shopping-cart" class="w-4 h-4"></i>
               放課後買い物投票へ進む
             </button>
@@ -432,7 +516,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: VOTING (商品選択バスケット方式) -->
+    <!-- TAB 3: VOTING (商品別数量選択・複数個買い対応) -->
     <div id="tab-voting" class="tab-content hidden space-y-6">
       <div class="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -468,7 +552,7 @@
             <div id="voting-event-desc" class="text-xs text-amber-50">自習・静寂を求める客層が激増しています！</div>
           </div>
         </div>
-        <button onclick="switchTab('tab-simulation')" class="px-3 py-1.5 bg-white text-orange-600 rounded-xl text-xs font-black shadow hover:bg-orange-50 transition cursor-pointer">
+        <button type="button" onclick="switchTab('tab-simulation')" class="px-3 py-1.5 bg-white text-orange-600 rounded-xl text-xs font-black shadow hover:bg-orange-50 transition cursor-pointer">
           損益への影響を見る
         </button>
       </div>
@@ -478,9 +562,9 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-700">STEP 2</span>
-              <h2 class="text-base sm:text-lg font-black text-slate-800">放課後、買いたい商品（複数可）を選択！</h2>
+              <h2 class="text-base sm:text-lg font-black text-slate-800">放課後、買いたい商品と個数を選択！</h2>
             </div>
-            <p class="text-xs text-slate-500 mt-0.5">お店の中にある「看板商品」や「追加駄菓子・サイドメニュー」にチェックを入れて選んでください。</p>
+            <p class="text-xs text-slate-500 mt-0.5">お店の中にある商品の「＋」「−」を押して、買う個数を決めてください（複数種類・複数個のまとめ買いOK）。</p>
           </div>
           <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
             総来店数: <strong id="voting-total-count" class="text-orange-600 font-black">0</strong> 票
@@ -498,7 +582,7 @@
               <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-indigo-600 text-white">STEP 3</span>
               <h2 class="text-base sm:text-lg font-black text-slate-800">選んだ理由（購買動機）を入力して購入を確定！</h2>
             </div>
-            <p class="text-xs text-slate-600 mt-0.5">その商品・メニューを選んだ（または直帰した）決め手を教えてください。</p>
+            <p class="text-xs text-slate-600 mt-0.5">その商品・個数を選んだ（または直帰した）決め手を教えてください。</p>
           </div>
           <div id="voting-selected-store-preview" class="text-xs font-bold text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-indigo-200">
             選択中の商品: <span class="text-indigo-600 font-black">（STEP 2で商品を選択してください）</span>
@@ -509,36 +593,20 @@
           <div>
             <label class="block text-[11px] font-bold text-slate-600 mb-1.5">クイック選択（クリックで理由に追加）:</label>
             <div class="flex flex-wrap gap-1.5">
-              <button type="button" onclick="appendReasonTag('数十円で買えてお小遣いピンチでも助かる！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
-                🪙 10円〜買えて神コスパ
-              </button>
-              <button type="button" onclick="appendReasonTag('ボリューム満点で満腹になりそう！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
-                🍖 ボリューム満点
-              </button>
-              <button type="button" onclick="appendReasonTag('写真映え・パッケージが可愛くてSNSに載せたい！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
-                📸 映え・可愛い
-              </button>
-              <button type="button" onclick="appendReasonTag('静かでWi-Fiや電源があって長居・自習できる！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
-                📖 静か・Wi-Fi完備
-              </button>
-              <button type="button" onclick="appendReasonTag('学校近くやすぐ寄れる立地が最高！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
-                📍 近くて便利
-              </button>
-              <button type="button" onclick="appendReasonTag('10円〜数十円の駄菓子をあれこれ選ぶのが楽しい！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">
-                🍭 ついで買い・選べる楽しさ
-              </button>
-              <button type="button" onclick="appendReasonTag('予算オーバーで買えるものがない！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition shadow-2xs cursor-pointer">
-                💸 予算オーバー・高すぎる
-              </button>
-              <button type="button" onclick="appendReasonTag('今の気分に合う店・メニューがないので直帰！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition shadow-2xs cursor-pointer">
-                🏠 行きたい店がない・直帰
-              </button>
+              <button type="button" onclick="appendReasonTag('数十円で買えてお小遣いピンチでも助かる！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">🪙 10円〜買えて神コスパ</button>
+              <button type="button" onclick="appendReasonTag('駄菓子をたくさんまとめ買いできて満足！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">🍬 複数個まとめ買い</button>
+              <button type="button" onclick="appendReasonTag('ボリューム満点で満腹になりそう！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">🍖 ボリューム満点</button>
+              <button type="button" onclick="appendReasonTag('写真映え・パッケージが可愛くてSNSに載せたい！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">📸 映え・可愛い</button>
+              <button type="button" onclick="appendReasonTag('静かでWi-Fiや電源があって長居・自習できる！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">📖 静か・Wi-Fi完備</button>
+              <button type="button" onclick="appendReasonTag('学校近くやすぐ寄れる立地が最高！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-indigo-100 text-slate-700 border border-slate-200 transition shadow-2xs cursor-pointer">📍 近くて便利</button>
+              <button type="button" onclick="appendReasonTag('予算オーバーで買えるものがない！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition shadow-2xs cursor-pointer">💸 予算オーバー・高すぎる</button>
+              <button type="button" onclick="appendReasonTag('今の気分に合う店・メニューがないので直帰！')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition shadow-2xs cursor-pointer">🏠 行きたい店がない・直帰</button>
             </div>
           </div>
 
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-1">自由記述（ペルソナの生の声）:</label>
-            <textarea id="voting-reason-input" rows="2" placeholder="例: 10円台の駄菓子を複数個買っても合計50円で予算にピッタリ！放課後友達と寄り道しやすい！" class="w-full px-3 py-2 rounded-xl border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs bg-white"></textarea>
+            <textarea id="voting-reason-input" rows="2" placeholder="例: 10円チョコを3個と30円水あめを2個買っても合計90円！小遣いの範囲で色々食べられて大満足！" class="w-full px-3 py-2 rounded-xl border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs bg-white"></textarea>
           </div>
 
           <div class="flex justify-end">
@@ -570,7 +638,6 @@
 
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="sim-kpi-cards"></div>
 
-      <!-- 要因分析ダッシュボード -->
       <div class="bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-indigo-700/50">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-indigo-800/80 pb-3">
           <div>
@@ -594,7 +661,6 @@
         <div id="event-analysis-content" class="grid grid-cols-1 md:grid-cols-4 gap-4"></div>
       </div>
 
-      <!-- P/L Table -->
       <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
         <div class="flex flex-wrap items-center justify-between mb-3 gap-2">
           <h3 class="font-extrabold text-sm sm:text-base text-slate-800 flex items-center gap-2">
@@ -626,7 +692,6 @@
         </div>
       </div>
 
-      <!-- Charts Row -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-5 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col">
           <div class="flex items-center justify-between mb-2">
@@ -672,9 +737,7 @@
   <!-- 🔐 管理者・教員専用 パスワード認証モーダル -->
   <div id="admin-auth-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 text-center">
-      <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto text-amber-700 text-2xl mb-3">
-        🔐
-      </div>
+      <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto text-amber-700 text-2xl mb-3">🔐</div>
       <h3 class="text-base font-black text-slate-900">教員・管理者 ログイン</h3>
       <p class="text-xs text-slate-500 mt-1">営業月の進行、突発イベント、マスターデータを管理するためのパスワードを入力してください。</p>
       
@@ -683,12 +746,8 @@
         <p class="text-[10px] text-slate-400 mt-1">※初期パスワード: <span class="font-mono font-bold text-slate-600">teacher2026</span></p>
 
         <div class="flex gap-2 mt-4">
-          <button type="button" onclick="closeAdminAuthModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer">
-            キャンセル
-          </button>
-          <button type="submit" id="btn-admin-login-submit" class="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black transition cursor-pointer">
-            入室する
-          </button>
+          <button type="button" onclick="closeAdminAuthModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer">キャンセル</button>
+          <button type="submit" id="btn-admin-login-submit" class="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black transition cursor-pointer">入室する</button>
         </div>
       </form>
     </div>
@@ -877,7 +936,7 @@
   <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
       <div class="flex items-center gap-2">
-        <span class="font-bold text-slate-700">MarketPBL 久留米エディション v6.3</span>
+        <span class="font-bold text-slate-700">MarketPBL 久留米エディション v6.5</span>
         <span>|</span>
         <span>完全修復版・直帰ペルソナ情報収集＆商品別購買シミュレーター</span>
       </div>
@@ -886,56 +945,9 @@
   </footer>
 
   <!-- ============================================== -->
-  <!-- 核心スクリプト (全マスターデータ・全関数・安全防御) -->
+  <!-- 核心スクリプト (数量ステッパー・損益・イベント処理) -->
   <!-- ============================================== -->
   <script>
-    // --- マスターデータ ---
-    const monthSeasonsMaster = {
-      4: { name: '4月', title: '新学期・新歓・出会いの春商戦', icon: '🌸', desc: '新入生の部活探し＆友達づくりで買い食い・カフェ利用が急増！全店客数+15%の春特需！', impactLabel: '全店客数 +15% / 通常原価', globalTrafficMult: 1.15, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: {} },
-      5: { name: '5月', title: 'GW・初夏・高校総体予選', icon: '🌿', desc: '気温上昇で冷たいドリンク・スイーツ需要急増！部活生・休日ファミリー客が活発化。', impactLabel: 'カフェ・ドリンク客数 +25% / 通常原価', globalTrafficMult: 1.05, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: { cafe: 1.25 } },
-      6: { name: '6月', title: '梅雨・期末テスト期間', icon: '🌧️', desc: '雨天移動難で学校前・駅前至近に客集中。部活停止で自習派急増。湿気ロスで変動費+5%。', impactLabel: '自習特化 +20% / 変動費 +5%', globalTrafficMult: 0.95, varCostMult: 1.05, fixedUtilitiesMult: 1.0, categoryBoost: { study: 1.25 } },
-      7: { name: '7月', title: '期末明け猛暑・夏休み直前', icon: '☀️', desc: 'テスト明けの開放感で放課後の長居がピーク！猛暑で冷菓特需、エアコンで光熱費+15%。', impactLabel: '冷菓・軽食 +20% / 光熱費 +15%', globalTrafficMult: 1.10, varCostMult: 1.0, fixedUtilitiesMult: 1.15, categoryBoost: { cafe: 1.20, snack: 1.10 } },
-      8: { name: '8月', title: '夏休み・筑後川花火大会特需', icon: '🎆', desc: '高校休みで学校前は大打撃(-60%)！一方、西鉄久留米駅前・六ツ門は祭り特大特需(+50%)！', impactLabel: '駅前・商店街 +50% / 学校前 -60%', globalTrafficMult: 0.90, varCostMult: 1.10, fixedUtilitiesMult: 1.20, locationBoost: { station: 1.50, arcade: 1.40, gate: 0.40, residential: 0.85 } },
-      9: { name: '9月', title: '2学期開始・体育祭準備', icon: '🍁', desc: '体育祭準備で居残り生徒多数！部活生の食欲旺盛、がっつりフード・大容量ドリンク特需！', impactLabel: 'がっつり軽食 +25% / 通常固定費', globalTrafficMult: 1.15, varCostMult: 1.0, fixedUtilitiesMult: 1.0, categoryBoost: { snack: 1.25 } }
-    };
-
-    const rentMap = { gate: 60000, station: 100000, arcade: 75000, residential: 40000 };
-
-    const personasMaster = [
-      { id: 'sports', name: '① 腹ペコ部活生', personName: '佐藤 陸 (高2・運動部)', icon: '⚽', budget: '350円〜500円', defaultBudget: 500, defaultCategory: 'snack' },
-      { id: 'trend', name: '② トレンド女子', personName: '高橋 結菜 (高2・文化部/帰宅部)', icon: '🧋', budget: '600円〜900円', defaultBudget: 750, defaultCategory: 'cafe' },
-      { id: 'study', name: '③ 勉強・作業派', personName: '渡辺 蓮 (高3・進学希望/テスト前)', icon: '📖', budget: '400円〜600円', defaultBudget: 500, defaultCategory: 'study' },
-      { id: 'cost', name: '④ コスパ節約派', personName: '田中 葵 (高1・お小遣い月3,000円)', icon: '👛', budget: '30円〜300円', defaultBudget: 150, defaultCategory: 'dagashi' },
-      { id: 'commuter', name: '⑤ 駅通勤者', personName: '木村 恵美 (30代・西鉄久留米利用の会社員)', icon: '💼', budget: '700円〜1,200円', defaultBudget: 900, defaultCategory: 'convenience' },
-      { id: 'family', name: '⑥ 近隣ファミリー', personName: '山本 友香 (40代・小学生連れ)', icon: '👨‍👩‍👧', budget: '1,000円〜1,500円', defaultBudget: 1200, defaultCategory: 'snack' }
-    ];
-
-    const marketEventsMaster = [
-      { id: 'exam', title: '期末テスト1週間前突入！', icon: '📝', desc: '部活動停止で自習・作業需要が急増！運動部の買い食いは減少。', boostPersona: 'study', boostRate: 2.3, costMultiplier: 1.0, advice: '静寂環境・Wi-Fi完備の店舗に客が集中します。' },
-      { id: 'rain', title: 'ゲリラ豪雨・長雨警報発令！', icon: '🌧️', desc: '大雨のため移動困難！学校エリアと西鉄久留米駅前の至近店舗に客が集中。', boostLocations: ['gate', 'station'], boostRate: 1.85, costMultiplier: 1.0, advice: '至近立地が圧倒的有利。遠方の商店街や住宅街は集客対策が必要。' },
-      { id: 'buzz', title: '久留米の高校生リールで大バズ！', icon: '📱', desc: 'TikTok・リール動画で話題沸騰！映え系スイーツ・トレンド店舗に長蛇の列！', boostPersona: 'trend', boostRate: 2.6, costMultiplier: 1.0, advice: 'SNS販促とビジュアル重視の店舗の売上が爆発します。' },
-      { id: 'cost_up', title: '原材料・包材費 25%高騰！', icon: '📉', desc: '仕入材料費が25%急騰！全店舗の限界利益を直撃！', boostRate: 1.0, costMultiplier: 1.25, advice: '変動費の高い店舗は利益が激減します。客単価UPや付加価値ピボットが急務。' }
-    ];
-
-    const defaultSampleStores = [
-      { id: 'store_1', teamName: '1班 (男子運動部)', storeName: '爆盛からあげ天国 ましまし亭', icon: '🍗', category: 'snack', productName: 'メガ盛りから揚げ丼（特製マヨ付き）', quality: 'budget', vibe: 'chill', price: 450, unitVariableCost: 170, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'school_flyer', targetPersona: 'sports', votes: 14, cumulativeRevenue: 6300, cumulativeVarCost: 2380, reasons: ['部活終わりに久留米高校前で即買える！ボリュームがすごい！'], subProducts: [{ name: '山盛りフライドポテト', price: 180, unitVariableCost: 45 }, { name: '部活応援メガ烏龍茶', price: 120, unitVariableCost: 20 }] },
-      { id: 'store_2', teamName: '2班 (トレンド企画部)', storeName: 'Chill & Sweets アオハルスタンド', icon: '🍓', category: 'cafe', productName: 'いちご生クリームもちもちクレープ', quality: 'premium', vibe: 'aesthetic', price: 580, unitVariableCost: 185, location: 'arcade', fixedRent: 75000, fixedLabor: 50000, fixedUtilities: 25000, promo: 'sns_reels', targetPersona: 'trend', votes: 16, cumulativeRevenue: 9280, cumulativeVarCost: 2960, reasons: ['六ツ門・シティプラザ近くで友達と写真撮りながら喋るのに最高！'], subProducts: [{ name: 'グラデーションフルーツソーダ', price: 380, unitVariableCost: 75 }] },
-      { id: 'store_3', teamName: '3班 (特進サポート隊)', storeName: '自習＆フリードリンク Focus CAFE', icon: '📚', category: 'study', productName: '全席電源完備・静寂ブース＆珈琲バー', quality: 'standard', vibe: 'quiet', price: 400, unitVariableCost: 80, location: 'residential', fixedRent: 40000, fixedLabor: 30000, fixedUtilities: 25000, promo: 'word_of_mouth', targetPersona: 'study', votes: 9, cumulativeRevenue: 3600, cumulativeVarCost: 720, reasons: ['南久留米の住宅街にあって静か。Wi-Fiと電源完備でテスト勉強に籠もれる。'], subProducts: [{ name: '集中持続ブドウ糖スナック', price: 150, unitVariableCost: 45 }] },
-      { id: 'store_4', teamName: '4班 (駄菓子本舗)', storeName: '昭和レトロ堂', icon: '🍭', category: 'dagashi', productName: '棒付き水あめ', quality: 'budget', vibe: 'nostalgic', price: 30, unitVariableCost: 18, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'word_of_mouth', targetPersona: 'cost', votes: 11, cumulativeRevenue: 1320, cumulativeVarCost: 660, reasons: ['10円や30円でいろいろ買えるのが最高！'], subProducts: [{ name: '10円チョコ', price: 10, unitVariableCost: 6 }, { name: 'ミニラムネ', price: 20, unitVariableCost: 10 }, { name: 'パチパチキャンディ', price: 30, unitVariableCost: 15 }] }
-    ];
-
-    // --- 状態変数 ---
-    window.stores = [];
-    window.selectedPersona = 'sports';
-    window.selectedBasket = null;
-    window.currentEvent = null;
-    window.currentMonth = 4;
-    window.noneVotes = 0;
-    window.noneReasons = [];
-    let adminPassword = localStorage.getItem('market_admin_pass') || 'teacher2026';
-    let chartMarketShareInstance = null;
-    let chartFinancialsInstance = null;
-
     // --- 初期ロード ---
     window.addEventListener('DOMContentLoaded', () => {
       loadLocalStorageBackup();
@@ -957,10 +969,10 @@
             window.noneReasons = Array.isArray(parsed.noneReasons) ? parsed.noneReasons : [];
           }
         } catch (e) {
-          window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
+          window.stores = JSON.parse(JSON.stringify(window.defaultSampleStores));
         }
       } else {
-        window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
+        window.stores = JSON.parse(JSON.stringify(window.defaultSampleStores));
       }
     }
 
@@ -974,44 +986,10 @@
       try { updateDashboard(); } catch(e) { console.error("updateDashboard error:", e); }
     };
 
-    // --- タブ切り替え ---
-    window.switchTab = function(targetTabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.nav-tab').forEach(btn => {
-        btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
-        btn.classList.add('text-slate-600');
-      });
-
-      const activeSection = document.getElementById(targetTabId);
-      if (activeSection) activeSection.classList.remove('hidden');
-
-      const activeBtn = document.querySelector(`[data-tab="${targetTabId}"]`);
-      if (activeBtn) {
-        activeBtn.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-sm');
-        activeBtn.classList.remove('text-slate-600');
-      }
-
-      if (targetTabId === 'tab-simulation') updateDashboard();
-      else if (targetTabId === 'tab-voting') renderVotingStores();
-      else if (targetTabId === 'tab-map') renderMapPins();
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      if (window.lucide) lucide.createIcons();
-    };
-
-    // タブクリックの初期イベント登録
-    document.querySelectorAll('.nav-tab').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const tabId = btn.getAttribute('data-tab');
-        if (tabId) switchTab(tabId);
-      });
-    });
-
     // --- 月度・季節バナー描画 ---
     window.renderMonthBanner = function() {
       const m = window.currentMonth || 4;
-      const s = monthSeasonsMaster[m] || monthSeasonsMaster[4];
+      const s = window.monthSeasonsMaster[m] || window.monthSeasonsMaster[4];
 
       const badge = document.getElementById('header-month-badge');
       if (badge) badge.textContent = `${s.name} (${s.title.slice(0, 5)})`;
@@ -1040,7 +1018,7 @@
       });
     };
 
-    function toggleCustomField(selectId, inputId) {
+    window.toggleCustomField = function(selectId, inputId) {
       const select = document.getElementById(selectId);
       const input = document.getElementById(inputId);
       if (select && input) {
@@ -1051,25 +1029,25 @@
           input.classList.add('hidden');
         }
       }
-    }
+    };
 
-    function syncLocationRent() {
+    window.syncLocationRent = function() {
       const loc = document.getElementById('place-location').value;
-      document.getElementById('fc-rent').value = rentMap[loc] || 60000;
-    }
+      document.getElementById('fc-rent').value = window.rentMap[loc] || 60000;
+    };
 
-    function calcMarginPreview() {
+    window.calcMarginPreview = function() {
       const p = parseInt(document.getElementById('price-point').value, 10) || 0;
       const v = parseInt(document.getElementById('unit-variable-cost').value, 10) || 0;
       const margin = p - v;
       const ratio = p > 0 ? Math.round((margin / p) * 100) : 0;
       document.getElementById('main-margin-badge').textContent = `限界利益: ¥${margin.toLocaleString()} (${ratio}%)`;
-    }
+    };
 
     // --- 計算ヘルパー ---
     function calculateEffectiveStoreMetrics(store, costMultiplier = 1.0) {
       const m = window.currentMonth || 4;
-      const season = (typeof monthSeasonsMaster !== 'undefined' && monthSeasonsMaster[m]) ? monthSeasonsMaster[m] : { varCostMult: 1.0, fixedUtilitiesMult: 1.0 };
+      const season = (typeof window.monthSeasonsMaster !== 'undefined' && window.monthSeasonsMaster[m]) ? window.monthSeasonsMaster[m] : { varCostMult: 1.0, fixedUtilitiesMult: 1.0 };
       const totalVarMult = (Number(costMultiplier) || 1.0) * (season.varCostMult || 1.0);
 
       const votes = Number(store?.votes) || 0;
@@ -1091,7 +1069,7 @@
 
       const unitContributionMargin = effectivePrice - effectiveVarCost;
       const loc = store?.location || 'gate';
-      const rent = Number(store?.fixedRent) || (typeof rentMap !== 'undefined' ? (rentMap[loc] || 60000) : 60000);
+      const rent = Number(store?.fixedRent) || (typeof window.rentMap !== 'undefined' ? (window.rentMap[loc] || 60000) : 60000);
       const labor = Number(store?.fixedLabor) || 40000;
       const util = (Number(store?.fixedUtilities) || 20000) * (season.fixedUtilitiesMult || 1.0);
 
@@ -1335,7 +1313,7 @@
       document.getElementById('price-point').value = s.price !== undefined ? s.price : 30;
       document.getElementById('unit-variable-cost').value = s.unitVariableCost !== undefined ? s.unitVariableCost : 18;
       document.getElementById('place-location').value = s.location || 'gate';
-      document.getElementById('fc-rent').value = s.fixedRent || rentMap[s.location || 'gate'];
+      document.getElementById('fc-rent').value = s.fixedRent || window.rentMap[s.location || 'gate'];
       document.getElementById('fc-labor').value = s.fixedLabor || 40000;
       document.getElementById('fc-utilities').value = s.fixedUtilities || 20000;
 
@@ -1412,7 +1390,7 @@
     window.renderVotingPersonaButtons = function() {
       const container = document.getElementById('voting-persona-buttons');
       if (!container) return;
-      container.innerHTML = personasMaster.map(p => {
+      container.innerHTML = window.personasMaster.map(p => {
         const isSelected = p.id === window.selectedPersona;
         return `
           <button type="button" onclick="selectVotingPersona('${p.id}')" class="p-2.5 rounded-xl border-2 transition text-center flex flex-col items-center justify-center cursor-pointer ${
@@ -1429,7 +1407,7 @@
     window.selectVotingPersona = function(pId) {
       window.selectedPersona = pId;
       renderVotingPersonaButtons();
-      const p = personasMaster.find(item => item.id === pId);
+      const p = window.personasMaster.find(item => item.id === pId);
       if (p) {
         showToast(`ペルソナ「${p.name}」を選択しました`);
         const noneBudgetInput = document.getElementById('none-budget');
@@ -1439,36 +1417,51 @@
       }
     };
 
-    // --- 商品選択バスケット制御 ---
-    window.handleProductSelection = function(storeId, itemIndex) {
+    // --- 商品別数量選択（複数個買い）ステッパー制御 ---
+    window.changeItemQty = function(storeId, itemKey, delta) {
+      const inputEl = document.getElementById(`qty-${storeId}-${itemKey}`);
+      if (!inputEl) return;
+      let cur = parseInt(inputEl.value, 10) || 0;
+      cur = Math.max(0, Math.min(99, cur + delta));
+      inputEl.value = cur;
+      syncStoreBasketFromQty(storeId);
+    };
+
+    window.syncStoreBasketFromQty = function(storeId) {
       if (window.selectedBasket === '__none__' || !window.selectedBasket || window.selectedBasket.storeId !== storeId) {
-        document.querySelectorAll('input[type="checkbox"][data-store-id]').forEach(cb => {
-          if (cb.getAttribute('data-store-id') !== storeId) cb.checked = false;
+        document.querySelectorAll('input.item-qty-input').forEach(input => {
+          if (input.getAttribute('data-store-id') !== storeId) input.value = 0;
         });
         window.selectedBasket = { storeId: storeId, items: [] };
       }
 
-      const checkedBoxes = document.querySelectorAll(`input[type="checkbox"][data-store-id="${storeId}"]:checked`);
       const store = (window.stores || []).find(s => s.id === storeId);
       if (!store) return;
 
       const chosenItems = [];
-      checkedBoxes.forEach(cb => {
-        const isMain = cb.getAttribute('data-is-main') === 'true';
-        if (isMain) {
-          chosenItems.push({
-            name: store.productName,
-            price: Number(store.price) || 0,
-            unitVariableCost: Number(store.unitVariableCost) || 0
-          });
-        } else {
-          const idx = parseInt(cb.getAttribute('data-sub-idx'), 10);
-          if (store.subProducts && store.subProducts[idx]) {
+      const qtyInputs = document.querySelectorAll(`input.item-qty-input[data-store-id="${storeId}"]`);
+      
+      qtyInputs.forEach(input => {
+        const qty = parseInt(input.value, 10) || 0;
+        if (qty > 0) {
+          const isMain = input.getAttribute('data-is-main') === 'true';
+          if (isMain) {
             chosenItems.push({
-              name: store.subProducts[idx].name,
-              price: Number(store.subProducts[idx].price) || 0,
-              unitVariableCost: Number(store.subProducts[idx].unitVariableCost) || 0
+              name: store.productName || '看板商品',
+              price: Number(store.price) || 0,
+              unitVariableCost: Number(store.unitVariableCost) || 0,
+              quantity: qty
             });
+          } else {
+            const idx = parseInt(input.getAttribute('data-sub-idx'), 10);
+            if (store.subProducts && store.subProducts[idx]) {
+              chosenItems.push({
+                name: store.subProducts[idx].name || '商品',
+                price: Number(store.subProducts[idx].price) || 0,
+                unitVariableCost: Number(store.subProducts[idx].unitVariableCost) || 0,
+                quantity: qty
+              });
+            }
           }
         }
       });
@@ -1487,18 +1480,19 @@
       const summaryEl = document.getElementById(`basket-summary-${storeId}`);
       if (!summaryEl) return;
 
-      if (!window.selectedBasket || window.selectedBasket.storeId !== storeId || window.selectedBasket.items.length === 0) {
-        summaryEl.innerHTML = `<span class="text-slate-400">商品を選択してください</span>`;
+      if (!window.selectedBasket || window.selectedBasket.storeId !== storeId || !window.selectedBasket.items || window.selectedBasket.items.length === 0) {
+        summaryEl.innerHTML = `<span class="text-slate-400 text-xs">数量を選ぶと購入合計が表示されます</span>`;
         return;
       }
 
-      const totalP = window.selectedBasket.items.reduce((s, it) => s + it.price, 0);
-      const curPersona = personasMaster.find(p => p.id === window.selectedPersona) || personasMaster[0];
+      const totalItemsCount = window.selectedBasket.items.reduce((s, it) => s + it.quantity, 0);
+      const totalP = window.selectedBasket.items.reduce((s, it) => s + (it.price * it.quantity), 0);
+      const curPersona = window.personasMaster.find(p => p.id === window.selectedPersona) || window.personasMaster[0];
       const isOver = totalP > (curPersona.defaultBudget || 1000);
 
       summaryEl.innerHTML = `
         <div class="flex items-center justify-between text-xs font-bold">
-          <span>購入点数: <strong class="text-slate-900">${window.selectedBasket.items.length}品</strong></span>
+          <span>購入総数: <strong class="text-slate-900">${totalItemsCount} 個</strong> (${window.selectedBasket.items.length}種類)</span>
           <span>合計金額: <strong class="text-sm font-mono ${isOver ? 'text-rose-600' : 'text-emerald-700'}">¥${totalP.toLocaleString()}</strong></span>
         </div>
         ${isOver ? `<span class="text-[10px] text-rose-500 font-bold block mt-0.5">⚠️ ペルソナの予算（〜${curPersona.budget}）をオーバー気味です</span>` : ''}
@@ -1507,13 +1501,13 @@
 
     // --- 直帰（該当なし）選択とペルソナ情報入力 ---
     window.selectNoneForVote = function() {
-      document.querySelectorAll('input[type="checkbox"][data-store-id]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('input.item-qty-input').forEach(input => input.value = 0);
       (window.stores || []).forEach(s => updateBasketUI(s.id));
 
       const noneForm = document.getElementById('none-details-form');
       if (noneForm) noneForm.classList.remove('hidden');
 
-      const curPersona = personasMaster.find(p => p.id === window.selectedPersona) || personasMaster[0];
+      const curPersona = window.personasMaster.find(p => p.id === window.selectedPersona) || window.personasMaster[0];
       const noneBudgetInput = document.getElementById('none-budget');
       const noneCatInput = document.getElementById('none-category');
       if (noneBudgetInput && (!noneBudgetInput.value || noneBudgetInput.value === '0')) {
@@ -1541,7 +1535,7 @@
       if (!previewEl) return;
 
       if (!window.selectedBasket) {
-        previewEl.innerHTML = `選択中の商品: <span class="text-indigo-600 font-black">（STEP 2で商品を選択してください）</span>`;
+        previewEl.innerHTML = `選択中の商品: <span class="text-indigo-600 font-black">（STEP 2で商品と個数を選択してください）</span>`;
         return;
       }
 
@@ -1558,12 +1552,12 @@
 
       const st = (window.stores || []).find(s => s.id === window.selectedBasket.storeId);
       const items = window.selectedBasket.items || [];
-      const totalP = items.reduce((s, it) => s + it.price, 0);
-      const itemNames = items.map(it => `${it.name}(¥${it.price})`).join(' + ');
+      const totalP = items.reduce((s, it) => s + (it.price * it.quantity), 0);
+      const itemDescriptions = items.map(it => `${it.name} × ${it.quantity}個`).join(' + ');
 
       previewEl.innerHTML = `
         選択中の商品: <span class="text-orange-600 font-black text-sm">${st ? st.storeName : ''}</span>
-        <span class="text-slate-700 font-bold ml-1">[ ${itemNames} ＝ 合計¥${totalP.toLocaleString()} ]</span>
+        <span class="text-slate-700 font-bold ml-1">[ ${itemDescriptions} ＝ 合計¥${totalP.toLocaleString()} ]</span>
       `;
     }
 
@@ -1614,16 +1608,16 @@
 
       const items = window.selectedBasket.items || [];
       if (items.length === 0) {
-        alert('商品にチェックが入っていません。1つ以上選んでください。');
+        alert('商品の数量が0個です。1個以上選んでください。');
         return;
       }
 
-      const totalP = items.reduce((s, it) => s + it.price, 0);
-      const totalV = items.reduce((s, it) => s + it.unitVariableCost, 0);
-      const itemNames = items.map(it => it.name).join('、');
+      const totalP = items.reduce((s, it) => s + (it.price * it.quantity), 0);
+      const totalV = items.reduce((s, it) => s + (it.unitVariableCost * it.quantity), 0);
+      const itemDescriptions = items.map(it => `${it.name}×${it.quantity}`).join('、');
 
-      const defaultReason = `${itemNames} を購入。価格・組み合わせが魅力的だったため。`;
-      const finalReason = reasonText ? `${reasonText} [購入: ${itemNames}]` : defaultReason;
+      const defaultReason = `${itemDescriptions} を購入。価格・組み合わせが魅力的だったため。`;
+      const finalReason = reasonText ? `${reasonText} [購入: ${itemDescriptions}]` : defaultReason;
 
       store.votes = (store.votes || 0) + 1;
       store.cumulativeRevenue = (store.cumulativeRevenue || 0) + totalP;
@@ -1643,7 +1637,7 @@
       showToast(`「${store.storeName}」での購入（合計¥${totalP}）を記録しました！`);
     };
 
-    // --- 投票店舗カード描画 ---
+    // --- 投票店舗カード描画（数量カウンター付き） ---
     window.renderVotingStores = function() {
       const container = document.getElementById('voting-stores-grid');
       if (!container) return;
@@ -1658,7 +1652,6 @@
       if (badgeEl) badgeEl.textContent = `${totalVotes}票`;
 
       const locationLabels = { gate: '学校エリア（久留米高校前周辺）', station: '駅前・オフィスエリア（西鉄久留米）', arcade: '商店街エリア（六ツ門・一番街）', residential: '住宅エリア（南久留米）' };
-      const promoLabels = { word_of_mouth: '友達紹介口コミ', school_flyer: '校門前のチラシ配布', coupon: '学割クーポン配布', sns_reels: 'TikTok/リール動画拡散' };
 
       let html = '';
 
@@ -1687,34 +1680,42 @@
                 </div>
                 <div class="min-w-0">
                   <h3 class="font-black text-base text-slate-900 leading-tight truncate">${store.storeName || ''}</h3>
-                  <span class="text-[10px] text-slate-400">クリックして商品を選択してください</span>
+                  <span class="text-[10px] text-slate-400">買う個数を「＋」「−」で選んでください</span>
                 </div>
               </div>
 
-              <div class="bg-slate-50 rounded-2xl p-3 my-3 border border-slate-200 space-y-1.5 text-xs">
-                <span class="text-[10px] font-bold text-slate-500 block mb-1">🛒 この店で買う商品を選ぶ（複数選択可）:</span>
+              <div class="bg-slate-50 rounded-2xl p-3 my-3 border border-slate-200 space-y-2 text-xs">
+                <span class="text-[10px] font-bold text-slate-500 block">🛒 購入する商品と個数を選択:</span>
 
-                <label class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 hover:border-orange-400 cursor-pointer transition">
-                  <div class="flex items-center gap-2 min-w-0 flex-1">
-                    <input type="checkbox" data-store-id="${store.id}" data-is-main="true" onchange="handleProductSelection('${store.id}')" class="rounded text-orange-600 focus:ring-orange-500 w-4 h-4 cursor-pointer">
-                    <span class="font-bold text-slate-800 text-[11px] truncate">★ ${store.productName || '看板商品'}</span>
+                <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 hover:border-orange-300 transition">
+                  <div class="min-w-0 flex-1 pr-2">
+                    <span class="font-bold text-slate-800 text-[11px] block truncate">★ ${store.productName || '看板商品'}</span>
+                    <span class="font-mono font-bold text-rose-600 text-xs">¥${(store.price || 0).toLocaleString()}</span>
                   </div>
-                  <span class="font-mono font-black text-rose-600 text-xs shrink-0 ml-1">¥${(store.price || 0).toLocaleString()}</span>
-                </label>
+                  <div class="flex items-center gap-1.5 shrink-0 bg-slate-100 p-1 rounded-lg">
+                    <button type="button" onclick="changeItemQty('${store.id}', 'main', -1)" class="w-6 h-6 rounded bg-white shadow-xs font-black text-slate-700 hover:bg-rose-50 flex items-center justify-center cursor-pointer">－</button>
+                    <input type="number" id="qty-${store.id}-main" data-store-id="${store.id}" data-is-main="true" value="0" min="0" max="99" onchange="syncStoreBasketFromQty('${store.id}')" class="item-qty-input w-8 text-center bg-transparent font-mono font-black text-xs focus:outline-none">
+                    <button type="button" onclick="changeItemQty('${store.id}', 'main', 1)" class="w-6 h-6 rounded bg-white shadow-xs font-black text-slate-700 hover:bg-emerald-50 flex items-center justify-center cursor-pointer">＋</button>
+                  </div>
+                </div>
 
                 ${subProducts.map((sp, idx) => `
-                  <label class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 hover:border-orange-400 cursor-pointer transition">
-                    <div class="flex items-center gap-2 min-w-0 flex-1">
-                      <input type="checkbox" data-store-id="${store.id}" data-is-main="false" data-sub-idx="${idx}" onchange="handleProductSelection('${store.id}', ${idx})" class="rounded text-orange-600 focus:ring-orange-500 w-4 h-4 cursor-pointer">
-                      <span class="font-medium text-slate-700 text-[11px] truncate">+ ${sp.name || '商品'}</span>
+                  <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 hover:border-orange-300 transition">
+                    <div class="min-w-0 flex-1 pr-2">
+                      <span class="font-medium text-slate-700 text-[11px] block truncate">+ ${sp.name || '商品'}</span>
+                      <span class="font-mono font-bold text-orange-600 text-xs">¥${(sp.price || 0).toLocaleString()}</span>
                     </div>
-                    <span class="font-mono font-bold text-orange-600 text-xs shrink-0 ml-1">¥${(sp.price || 0).toLocaleString()}</span>
-                  </label>
+                    <div class="flex items-center gap-1.5 shrink-0 bg-slate-100 p-1 rounded-lg">
+                      <button type="button" onclick="changeItemQty('${store.id}', 'sub-${idx}', -1)" class="w-6 h-6 rounded bg-white shadow-xs font-black text-slate-700 hover:bg-rose-50 flex items-center justify-center cursor-pointer">－</button>
+                      <input type="number" id="qty-${store.id}-sub-${idx}" data-store-id="${store.id}" data-is-main="false" data-sub-idx="${idx}" value="0" min="0" max="99" onchange="syncStoreBasketFromQty('${store.id}')" class="item-qty-input w-8 text-center bg-transparent font-mono font-black text-xs focus:outline-none">
+                      <button type="button" onclick="changeItemQty('${store.id}', 'sub-${idx}', 1)" class="w-6 h-6 rounded bg-white shadow-xs font-black text-slate-700 hover:bg-emerald-50 flex items-center justify-center cursor-pointer">＋</button>
+                    </div>
+                  </div>
                 `).join('')}
               </div>
 
               <div id="basket-summary-${store.id}" class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 mb-2">
-                <span class="text-[11px] text-slate-400">商品にチェックを入れると合計が表示されます</span>
+                <span class="text-[11px] text-slate-400">数量を選ぶと購入合計が表示されます</span>
               </div>
             </div>
 
@@ -1726,9 +1727,10 @@
         `;
       }).join('');
 
+      // 直帰カード
       const isNoneSelected = window.selectedBasket === '__none__';
       const noneShare = totalVotes > 0 ? Math.round(((window.noneVotes || 0) / totalVotes) * 100) : 0;
-      const curPersona = personasMaster.find(p => p.id === window.selectedPersona) || personasMaster[0];
+      const curPersona = window.personasMaster.find(p => p.id === window.selectedPersona) || window.personasMaster[0];
 
       html += `
         <div class="bg-gradient-to-b from-slate-50 to-white rounded-3xl p-5 shadow-sm border-2 transition flex flex-col justify-between ${
@@ -1813,11 +1815,11 @@
         '六ツ門のカフェで放課後インスタ映えする写真が撮れる！',
         '南久留米の静かな場所でWi-Fiと電源があって自習に最適！',
         '西鉄久留米駅で電車に乗る前にすぐ寄れる！',
-        '駄菓子を10円・20円でいろいろ選ぶのが楽しい！'
+        '駄菓子を10円・20円でたくさん選んでまとめ買いした！'
       ];
 
       for (let i = 0; i < count; i++) {
-        const randPersona = personasMaster[Math.floor(Math.random() * personasMaster.length)];
+        const randPersona = window.personasMaster[Math.floor(Math.random() * window.personasMaster.length)];
         let noneWeight = 5;
         if (randPersona.id === 'cost') noneWeight += 10;
 
@@ -1846,10 +1848,11 @@
 
           let simRev = Number(st.price) || 0;
           let simVar = Number(st.unitVariableCost) || 0;
-          if (st.subProducts && st.subProducts.length > 0 && Math.random() > 0.4) {
+          if (st.subProducts && st.subProducts.length > 0 && Math.random() > 0.3) {
             const randSub = st.subProducts[Math.floor(Math.random() * st.subProducts.length)];
-            simRev += Number(randSub.price) || 0;
-            simVar += Number(randSub.unitVariableCost) || 0;
+            const qty = Math.floor(Math.random() * 3) + 1;
+            simRev += (Number(randSub.price) || 0) * qty;
+            simVar += (Number(randSub.unitVariableCost) || 0) * qty;
           }
 
           st.cumulativeRevenue = (st.cumulativeRevenue || 0) + simRev;
@@ -1864,7 +1867,7 @@
       renderVotingStores();
       renderTeamsList();
       updateDashboard();
-      showToast(`クラス35人分の久留米ペルソナ買い物投票（直帰含む）を実行しました！`);
+      showToast(`クラス35人分の久留米ペルソナ買い物投票（複数買い含む）を実行しました！`);
     };
 
     window.resetVotesOnly = function() {
@@ -1901,7 +1904,7 @@
       const DAILY_TRAFFIC = 400;
       const MONTHLY_DAYS = 20;
       const m = window.currentMonth || 4;
-      const season = monthSeasonsMaster[m] || monthSeasonsMaster[4];
+      const season = window.monthSeasonsMaster[m] || window.monthSeasonsMaster[4];
 
       const storesList = window.stores || [];
       const storesVotes = storesList.reduce((sum, s) => sum + (s.votes || 0), 0);
@@ -2121,7 +2124,7 @@
       };
 
       const m = window.currentMonth || 4;
-      const season = monthSeasonsMaster[m] || monthSeasonsMaster[4];
+      const season = window.monthSeasonsMaster[m] || window.monthSeasonsMaster[4];
       const eventName = window.currentEvent ? `${window.currentEvent.icon} ${window.currentEvent.title}` : `【${season.name}度 季節環境】${season.title}`;
 
       container.innerHTML = `
@@ -2198,8 +2201,8 @@
 
       const pieCanvas = document.getElementById('chart-market-share');
       if (pieCanvas) {
-        if (chartMarketShareInstance) chartMarketShareInstance.destroy();
-        chartMarketShareInstance = new Chart(pieCanvas.getContext('2d'), {
+        if (window.chartMarketShareInstance) window.chartMarketShareInstance.destroy();
+        window.chartMarketShareInstance = new Chart(pieCanvas.getContext('2d'), {
           type: 'doughnut',
           data: {
             labels: pieLabels,
@@ -2220,8 +2223,8 @@
 
       const barCanvas = document.getElementById('chart-financials');
       if (barCanvas) {
-        if (chartFinancialsInstance) chartFinancialsInstance.destroy();
-        chartFinancialsInstance = new Chart(barCanvas.getContext('2d'), {
+        if (window.chartFinancialsInstance) window.chartFinancialsInstance.destroy();
+        window.chartFinancialsInstance = new Chart(barCanvas.getContext('2d'), {
           type: 'bar',
           data: {
             labels: labels,
@@ -2322,7 +2325,7 @@
     };
 
     window.adminLoadSampleStores = function() {
-      window.stores = JSON.parse(JSON.stringify(defaultSampleStores));
+      window.stores = JSON.parse(JSON.stringify(window.defaultSampleStores));
       window.currentEvent = null;
       window.noneVotes = 0;
       window.noneReasons = [];
@@ -2363,7 +2366,7 @@
     };
 
     window.loadPresetToAdminForm = function(presetId) {
-      const p = marketEventsMaster.find(e => e.id === presetId);
+      const p = window.marketEventsMaster.find(e => e.id === presetId);
       if (!p) return;
       document.getElementById('admin-evt-icon').value = p.icon;
       document.getElementById('admin-evt-title').value = p.title;
@@ -2446,7 +2449,7 @@
         alert('パスワードは4文字以上で入力してください。');
         return;
       }
-      adminPassword = newP;
+      window.adminPassword = newP;
       localStorage.setItem('market_admin_pass', newP);
       document.getElementById('admin-new-pass').value = '';
       alert('管理者パスワードを更新しました。');
