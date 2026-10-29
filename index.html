@@ -37,18 +37,11 @@
       { id: 'family', name: '⑥ 近隣ファミリー', personName: '山本 友香 (40代・小学生連れ)', icon: '👨‍👩‍👧', budget: '1,000円〜1,500円', defaultBudget: 1200, defaultCategory: 'snack' }
     ];
 
-    window.marketEventsMaster = [
-      { id: 'exam', title: '期末テスト1週間前突入！', icon: '📝', desc: '部活動停止で自習・作業需要が急増！運動部の買い食いは減少。', boostPersona: 'study', boostRate: 2.3, costMultiplier: 1.0, advice: '静寂環境・Wi-Fi完備の店舗に客が集中します。' },
-      { id: 'rain', title: 'ゲリラ豪雨・長雨警報発令！', icon: '🌧️', desc: '大雨のため移動困難！学校エリアと西鉄久留米駅前の至近店舗に客が集中。', boostLocations: ['gate', 'station'], boostRate: 1.85, costMultiplier: 1.0, advice: '至近立地が圧倒的有利。遠方の商店街や住宅街は集客対策が必要。' },
-      { id: 'buzz', title: '久留米の高校生リールで大バズ！', icon: '📱', desc: 'TikTok・リール動画で話題沸騰！映え系スイーツ・トレンド店舗に長蛇の列！', boostPersona: 'trend', boostRate: 2.6, costMultiplier: 1.0, advice: 'SNS販促とビジュアル重視の店舗の売上が爆発します。' },
-      { id: 'cost_up', title: '原材料・包材費 25%高騰！', icon: '📉', desc: '仕入材料費が25%急騰！全店舗の限界利益を直撃！', boostRate: 1.0, costMultiplier: 1.25, advice: '変動費の高い店舗は利益が激減します。客単価UPや付加価値ピボットが急務。' }
-    ];
-
     window.defaultSampleStores = [
-      { id: 'store_1', teamName: '1班 (男子運動部)', storeName: '爆盛からあげ天国 ましまし亭', icon: '🍗', category: 'snack', productName: 'メガ盛りから揚げ丼（特製マヨ付き）', quality: 'budget', vibe: 'chill', price: 450, unitVariableCost: 170, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'school_flyer', targetPersona: 'sports', votes: 14, cumulativeRevenue: 6300, cumulativeVarCost: 2380, reasons: ['部活終わりに久留米高校前で即買える！ボリュームがすごい！'], subProducts: [{ name: '山盛りフライドポテト', price: 180, unitVariableCost: 45 }, { name: '部活応援メガ烏龍茶', price: 120, unitVariableCost: 20 }] },
-      { id: 'store_2', teamName: '2班 (トレンド企画部)', storeName: 'Chill & Sweets アオハルスタンド', icon: '🍓', category: 'cafe', productName: 'いちご生クリームもちもちクレープ', quality: 'premium', vibe: 'aesthetic', price: 580, unitVariableCost: 185, location: 'arcade', fixedRent: 75000, fixedLabor: 50000, fixedUtilities: 25000, promo: 'sns_reels', targetPersona: 'trend', votes: 16, cumulativeRevenue: 9280, cumulativeVarCost: 2960, reasons: ['六ツ門・シティプラザ近くで友達と写真撮りながら喋るのに最高！'], subProducts: [{ name: 'グラデーションフルーツソーダ', price: 380, unitVariableCost: 75 }] },
-      { id: 'store_3', teamName: '3班 (特進サポート隊)', storeName: '自習＆フリードリンク Focus CAFE', icon: '📚', category: 'study', productName: '全席電源完備・静寂ブース＆珈琲バー', quality: 'standard', vibe: 'quiet', price: 400, unitVariableCost: 80, location: 'residential', fixedRent: 40000, fixedLabor: 30000, fixedUtilities: 25000, promo: 'word_of_mouth', targetPersona: 'study', votes: 9, cumulativeRevenue: 3600, cumulativeVarCost: 720, reasons: ['南久留米の住宅街にあって静か。Wi-Fiと電源完備でテスト勉強に籠もれる。'], subProducts: [{ name: '集中持続ブドウ糖スナック', price: 150, unitVariableCost: 45 }] },
-      { id: 'store_4', teamName: '4班 (駄菓子本舗)', storeName: '昭和レトロ堂', icon: '🍭', category: 'dagashi', productName: '棒付き水あめ', quality: 'budget', vibe: 'nostalgic', price: 30, unitVariableCost: 18, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'word_of_mouth', targetPersona: 'cost', votes: 11, cumulativeRevenue: 1320, cumulativeVarCost: 660, reasons: ['10円や30円でいろいろ買えるのが最高！'], subProducts: [{ name: '10円チョコ', price: 10, unitVariableCost: 6 }, { name: 'ミニラムネ', price: 20, unitVariableCost: 10 }, { name: 'パチパチキャンディ', price: 30, unitVariableCost: 15 }] }
+      { id: 'store_1', teamName: '1班 (男子運動部)', storeName: '爆盛からあげ天国 ましまし亭', icon: '🍗', category: 'snack', productName: 'メガ盛りから揚げ丼（特製マヨ付き）', quality: 'budget', vibe: 'chill', price: 450, unitVariableCost: 170, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'school_flyer', targetPersona: 'sports', votes: 14, cumulativeRevenue: 6300, cumulativeVarCost: 2380, itemSales: { 'main': 14, 'sub-0': 6, 'sub-1': 8 }, reasons: ['部活終わりに久留米高校前で即買える！ボリュームがすごい！ [購入: メガ盛りから揚げ丼×1]'], subProducts: [{ name: '山盛りフライドポテト', price: 180, unitVariableCost: 45 }, { name: '部活応援メガ烏龍茶', price: 120, unitVariableCost: 20 }] },
+      { id: 'store_2', teamName: '2班 (トレンド企画部)', storeName: 'Chill & Sweets アオハルスタンド', icon: '🍓', category: 'cafe', productName: 'いちご生クリームもちもちクレープ', quality: 'premium', vibe: 'aesthetic', price: 580, unitVariableCost: 185, location: 'arcade', fixedRent: 75000, fixedLabor: 50000, fixedUtilities: 25000, promo: 'sns_reels', targetPersona: 'trend', votes: 16, cumulativeRevenue: 9280, cumulativeVarCost: 2960, itemSales: { 'main': 16, 'sub-0': 5 }, reasons: ['六ツ門・シティプラザ近くで友達と写真撮りながら喋るのに最高！ [購入: いちご生クリームもちもちクレープ×1]'], subProducts: [{ name: 'グラデーションフルーツソーダ', price: 380, unitVariableCost: 75 }] },
+      { id: 'store_3', teamName: '3班 (特進サポート隊)', storeName: '自習＆フリードリンク Focus CAFE', icon: '📚', category: 'study', productName: '全席電源完備・静寂ブース＆珈琲バー', quality: 'standard', vibe: 'quiet', price: 400, unitVariableCost: 80, location: 'residential', fixedRent: 40000, fixedLabor: 30000, fixedUtilities: 25000, promo: 'word_of_mouth', targetPersona: 'study', votes: 9, cumulativeRevenue: 3600, cumulativeVarCost: 720, itemSales: { 'main': 9, 'sub-0': 4 }, reasons: ['南久留米の住宅街にあって静か。Wi-Fiと電源完備でテスト勉強に籠もれる。 [購入: 全席電源完備・静寂ブース＆珈琲バー×1]'], subProducts: [{ name: '集中持続ブドウ糖スナック', price: 150, unitVariableCost: 45 }] },
+      { id: 'store_4', teamName: '4班 (駄菓子本舗)', storeName: '昭和レトロ堂', icon: '🍭', category: 'dagashi', productName: '棒付き水あめ', quality: 'budget', vibe: 'nostalgic', price: 30, unitVariableCost: 18, location: 'gate', fixedRent: 60000, fixedLabor: 40000, fixedUtilities: 20000, promo: 'word_of_mouth', targetPersona: 'cost', votes: 11, cumulativeRevenue: 1320, cumulativeVarCost: 660, itemSales: { 'main': 15, 'sub-0': 20, 'sub-1': 12, 'sub-2': 10 }, reasons: ['10円や30円でいろいろ買えるのが最高！ [購入: 棒付き水あめ×2、10円チョコ×3]'], subProducts: [{ name: '10円チョコ', price: 10, unitVariableCost: 6 }, { name: 'ミニラムネ', price: 20, unitVariableCost: 10 }, { name: 'パチパチキャンディ', price: 30, unitVariableCost: 15 }] }
     ];
 
     // --- グローバル状態変数 ---
@@ -63,7 +56,18 @@
     window.chartMarketShareInstance = null;
     window.chartFinancialsInstance = null;
 
-    // --- 先行定義：タブ切り替え（ボタン無反応を防止） ---
+    // --- 投票制限チェックヘルパー ---
+    window.hasVotedCurrentMonth = function() {
+      const m = window.currentMonth || 4;
+      return localStorage.getItem(`market_voted_month_${m}`) === 'true';
+    };
+
+    window.markVotedCurrentMonth = function() {
+      const m = window.currentMonth || 4;
+      localStorage.setItem(`market_voted_month_${m}`, 'true');
+    };
+
+    // --- タブ切り替え ---
     window.switchTab = function(targetTabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -111,7 +115,6 @@
     onValue(marketRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // 店舗データが空で届いた場合でも、ローカルストレージに店舗があれば保護する
         if (Array.isArray(data.stores) && data.stores.length > 0) {
           window.stores = data.stores;
         } else if (!window.stores || window.stores.length === 0) {
@@ -161,11 +164,6 @@
       });
     };
   </script>
-
-  <style>
-    .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 9999px; }
-  </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
@@ -516,8 +514,23 @@
       </div>
     </div>
 
-    <!-- TAB 3: VOTING (商品別数量選択・複数個買い対応) -->
+    <!-- TAB 3: VOTING (商品別数量選択・1端末月1回制限) -->
     <div id="tab-voting" class="tab-content hidden space-y-6">
+      
+      <!-- 投票済みバナー（既に投票した端末に表示） -->
+      <div id="already-voted-banner" class="hidden bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 text-emerald-900 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">✅</span>
+          <div>
+            <div class="font-black text-sm">【<span id="voted-month-badge">4</span>月度の投票は完了しています】</div>
+            <p class="text-xs text-emerald-700 mt-0.5">この端末からは既に当月の買い物投票を送信済みです。次の月度（または教員による解除）までお待ちください。</p>
+          </div>
+        </div>
+        <button type="button" onclick="switchTab('tab-simulation')" class="px-3 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-black hover:bg-emerald-700 transition">
+          損益ランキングを見る
+        </button>
+      </div>
+
       <div class="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
@@ -638,6 +651,46 @@
 
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="sim-kpi-cards"></div>
 
+      <!-- ★新機能：店舗別 商品出数（売れ筋）＆購買理由ドリルダウン -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-indigo-200">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-indigo-100 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-indigo-100 text-indigo-700">店舗個別分析</span>
+              <h3 class="text-base font-extrabold text-slate-800 flex items-center gap-1.5">
+                <i data-lucide="package-check" class="w-4 h-4 text-indigo-600"></i>
+                自店の商品別販売個数（売れ筋）＆ お客様の声（購入理由）
+              </h3>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">どの商品が何個買われ、お客様がどんな理由で自店を選んだのかを詳しく分析します。</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-600">表示店舗:</span>
+            <select id="store-detail-select" onchange="renderStoreDetailAnalysis()" class="px-3 py-1.5 rounded-xl bg-slate-50 text-indigo-900 border border-indigo-300 font-bold text-xs focus:ring-2 focus:ring-indigo-500">
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- 商品別出数カード -->
+          <div class="lg:col-span-5 space-y-2">
+            <span class="text-xs font-bold text-slate-600 block mb-1">📦 商品別・出数と売上内訳:</span>
+            <div id="store-detail-items-list" class="space-y-2 max-h-72 overflow-y-auto custom-scrollbar pr-1"></div>
+          </div>
+
+          <!-- その店舗に寄せられた購入理由リスト -->
+          <div class="lg:col-span-7 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-600 block mb-1">💬 この店舗を購入したペルソナの生の声:</span>
+              <span id="store-detail-votes-count" class="text-[10px] font-bold text-orange-600">総購入者: 0人</span>
+            </div>
+            <div id="store-detail-reasons-list" class="space-y-2 max-h-72 overflow-y-auto custom-scrollbar p-2 bg-slate-50 rounded-xl border border-slate-200 text-xs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 要因分析ダッシュボード -->
       <div class="bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-indigo-700/50">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-indigo-800/80 pb-3">
           <div>
@@ -661,6 +714,7 @@
         <div id="event-analysis-content" class="grid grid-cols-1 md:grid-cols-4 gap-4"></div>
       </div>
 
+      <!-- P/L Table -->
       <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
         <div class="flex flex-wrap items-center justify-between mb-3 gap-2">
           <h3 class="font-extrabold text-sm sm:text-base text-slate-800 flex items-center gap-2">
@@ -724,15 +778,35 @@
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-extrabold text-sm sm:text-base text-slate-800 flex items-center gap-2">
             <i data-lucide="message-square" class="w-4 h-4 text-rose-500"></i>
-            ペルソナからのリアルな口コミ（VOC・投票で寄せられた理由・直帰データ）
+            ペルソナからのリアルな口コミ（全体フィードバック・直帰理由）
           </h3>
-          <span class="text-[10px] text-slate-400">※STEP 3で入力された投票理由や直帰詳細が最新順に表示されます</span>
+          <span class="text-[10px] text-slate-400">※直近の投票理由や未開拓ニーズが最新順に表示されます</span>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="sim-feedback-grid"></div>
       </div>
     </div>
 
   </main>
+
+  <!-- 投票完了モーダル（多重投票を防止） -->
+  <div id="vote-success-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 text-center animate-bounce-short">
+      <div class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600 text-3xl mb-3">
+        🎉
+      </div>
+      <h3 class="text-base font-black text-slate-900">投票が完了しました！</h3>
+      <p id="vote-success-desc" class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+        あなたの購買投票が市場に反映されました。<br>
+        <span class="font-bold text-indigo-600">※この端末での当月の投票は完了です。</span>
+      </p>
+      
+      <div class="mt-5 flex gap-2">
+        <button type="button" onclick="closeVoteSuccessModal()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow transition">
+          損益ランキングを見に行く
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- 🔐 管理者・教員専用 パスワード認証モーダル -->
   <div id="admin-auth-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
@@ -807,12 +881,16 @@
               <p class="text-[10px] text-slate-500 mt-0.5">生徒全員の画面の店舗・投票データを一括で制御します。</p>
             </div>
           </div>
-          <div class="flex gap-2 pt-1">
+          <div class="flex flex-wrap gap-2 pt-1">
             <button type="button" onclick="adminLoadSampleStores()" class="flex-1 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
               <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
               サンプル4店舗を全員に一括適用
             </button>
-            <button type="button" onclick="adminResetAllData()" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center justify-center gap-1 cursor-pointer">
+            <button type="button" onclick="adminUnlockDeviceVote()" class="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center justify-center gap-1 shadow-xs cursor-pointer">
+              <i data-lucide="unlock" class="w-3.5 h-3.5"></i>
+              この端末の投票制限を解除(テスト用)
+            </button>
+            <button type="button" onclick="adminResetAllData()" class="px-3 py-2 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center justify-center gap-1 cursor-pointer">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               全データ完全初期化
             </button>
@@ -826,93 +904,6 @@
           </div>
           <button type="button" onclick="adminResetEvent()" class="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold transition cursor-pointer">
             イベント即時解除
-          </button>
-        </div>
-
-        <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-2">
-          <label class="block font-extrabold text-slate-800 text-xs">突発イベントのプリセットから選んで入力:</label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <button type="button" onclick="loadPresetToAdminForm('exam')" class="p-2 rounded-xl border border-slate-200 hover:border-amber-400 text-left bg-slate-50 cursor-pointer">
-              <span class="font-bold block text-slate-800">📝 期末テスト</span>
-              <span class="text-[10px] text-slate-500">自習特化ブースト</span>
-            </button>
-            <button type="button" onclick="loadPresetToAdminForm('rain')" class="p-2 rounded-xl border border-slate-200 hover:border-amber-400 text-left bg-slate-50 cursor-pointer">
-              <span class="font-bold block text-slate-800">🌧️ ゲリラ豪雨</span>
-              <span class="text-[10px] text-slate-500">駅前・学校前有利</span>
-            </button>
-            <button type="button" onclick="loadPresetToAdminForm('buzz')" class="p-2 rounded-xl border border-slate-200 hover:border-amber-400 text-left bg-slate-50 cursor-pointer">
-              <span class="font-bold block text-slate-800">📱 SNS大バズり</span>
-              <span class="text-[10px] text-slate-500">映えカフェ特大ブースト</span>
-            </button>
-            <button type="button" onclick="loadPresetToAdminForm('cost_up')" class="p-2 rounded-xl border border-slate-200 hover:border-amber-400 text-left bg-slate-50 cursor-pointer">
-              <span class="font-bold block text-slate-800">📉 原材料25%高騰</span>
-              <span class="text-[10px] text-slate-500">変動費急増ショック</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
-          <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span class="text-base">⚡</span>
-            <h4 class="font-extrabold text-slate-800 text-sm">突発イベントの作成・カスタマイズ＆適用</h4>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <div class="sm:col-span-1">
-              <label class="block font-bold text-slate-600 mb-1">アイコン (絵文字)</label>
-              <input type="text" id="admin-evt-icon" value="⚡" class="w-full px-3 py-2 text-center text-lg rounded-xl border border-slate-200 bg-white">
-            </div>
-            <div class="sm:col-span-3">
-              <label class="block font-bold text-slate-600 mb-1">イベント名 / ニュース見出し</label>
-              <input type="text" id="admin-evt-title" placeholder="例: 西鉄久留米駅で大型物産展が突如開催！" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold bg-white">
-            </div>
-          </div>
-
-          <div>
-            <label class="block font-bold text-slate-600 mb-1">イベントの説明 / 状況</label>
-            <textarea id="admin-evt-desc" rows="2" placeholder="例: 駅周辺に数千人の人流が集中。駅前エリアの店舗は大混雑となり、他のエリアは閑散。" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"></textarea>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3 p-3 bg-white rounded-xl border border-slate-200">
-            <div>
-              <label class="block font-bold text-slate-700 mb-0.5">客数ブースト倍率 (売上影響)</label>
-              <input type="number" id="admin-evt-boost" value="2.0" step="0.1" min="0.1" max="5.0" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-mono font-bold">
-              <p class="text-[10px] text-slate-400 mt-0.5">※1.0=通常、2.0=客数2倍、0.5=客数半減</p>
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-0.5">原材料・変動費倍率 (原価影響)</label>
-              <input type="number" id="admin-evt-costmult" value="1.0" step="0.05" min="0.5" max="3.0" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-mono font-bold text-rose-600">
-              <p class="text-[10px] text-slate-400 mt-0.5">※1.0=通常、1.25=変動費25%高騰</p>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <label class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
-                <i data-lucide="crosshair" class="w-3.5 h-3.5 text-rose-500"></i>
-                影響を与える対象店舗・エリアの指定
-              </label>
-              <span class="text-[10px] text-slate-400">※複数指定・個別指名が可能</span>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
-              <button type="button" onclick="selectTargetPreset('all')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">全店舗一括</button>
-              <button type="button" onclick="selectTargetPreset('station')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">西鉄久留米駅前のみ</button>
-              <button type="button" onclick="selectTargetPreset('arcade')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">商店街のみ</button>
-              <button type="button" onclick="selectTargetPreset('gate')" class="p-2 rounded-xl border border-slate-200 hover:border-indigo-400 text-center font-bold text-slate-700 bg-white cursor-pointer">学校前のみ</button>
-            </div>
-
-            <div id="admin-target-stores-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto custom-scrollbar p-2 bg-white rounded-xl border border-slate-200"></div>
-          </div>
-
-          <div>
-            <label class="block font-bold text-slate-600 mb-1">生徒への戦略アドバイス（ヒント）</label>
-            <input type="text" id="admin-evt-advice" placeholder="例: 変動費が高騰した店舗は、サイドメニューの値上げや高単価化を急ぎましょう。" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
-          </div>
-
-          <button type="button" onclick="adminApplyCustomEvent()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
-            <i data-lucide="zap" class="w-4 h-4"></i>
-            この設定でイベントを市場に即時発動！
           </button>
         </div>
 
@@ -936,19 +927,18 @@
   <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
       <div class="flex items-center gap-2">
-        <span class="font-bold text-slate-700">MarketPBL 久留米エディション v6.5</span>
+        <span class="font-bold text-slate-700">MarketPBL 久留米エディション v6.6</span>
         <span>|</span>
-        <span>完全修復版・直帰ペルソナ情報収集＆商品別購買シミュレーター</span>
+        <span>1端末月1回制限・商品出数＆購買理由ドリルダウン版</span>
       </div>
       <div class="text-[11px] text-slate-400">久留米商圏PBL演習</div>
     </div>
   </footer>
 
   <!-- ============================================== -->
-  <!-- 核心スクリプト (数量ステッパー・損益・イベント処理) -->
+  <!-- 核心スクリプト (店舗詳細出数分析・投票制限・シミュレーション) -->
   <!-- ============================================== -->
   <script>
-    // --- 初期ロード ---
     window.addEventListener('DOMContentLoaded', () => {
       loadLocalStorageBackup();
       safeRenderAll();
@@ -976,7 +966,6 @@
       }
     }
 
-    // --- 全画面レンダリング ---
     window.safeRenderAll = function() {
       try { renderMonthBanner(); } catch(e) { console.error("renderMonthBanner error:", e); }
       try { renderTeamsList(); } catch(e) { console.error("renderTeamsList error:", e); }
@@ -986,7 +975,6 @@
       try { updateDashboard(); } catch(e) { console.error("updateDashboard error:", e); }
     };
 
-    // --- 月度・季節バナー描画 ---
     window.renderMonthBanner = function() {
       const m = window.currentMonth || 4;
       const s = window.monthSeasonsMaster[m] || window.monthSeasonsMaster[4];
@@ -1016,6 +1004,10 @@
           btn.classList.add('text-white');
         }
       });
+
+      // 投票画面の月度バッジ
+      const votedMonthEl = document.getElementById('voted-month-badge');
+      if (votedMonthEl) votedMonthEl.textContent = m;
     };
 
     window.toggleCustomField = function(selectId, inputId) {
@@ -1044,7 +1036,6 @@
       document.getElementById('main-margin-badge').textContent = `限界利益: ¥${margin.toLocaleString()} (${ratio}%)`;
     };
 
-    // --- 計算ヘルパー ---
     function calculateEffectiveStoreMetrics(store, costMultiplier = 1.0) {
       const m = window.currentMonth || 4;
       const season = (typeof window.monthSeasonsMaster !== 'undefined' && window.monthSeasonsMaster[m]) ? window.monthSeasonsMaster[m] : { varCostMult: 1.0, fixedUtilitiesMult: 1.0 };
@@ -1081,7 +1072,6 @@
       };
     }
 
-    // --- 店舗一覧描画 ---
     window.renderTeamsList = function() {
       const container = document.getElementById('teams-container');
       const badge = document.getElementById('team-badge-count');
@@ -1178,7 +1168,6 @@
       if (window.lucide) lucide.createIcons();
     };
 
-    // --- サブ商品フォーム管理 ---
     const subproductsContainer = document.getElementById('subproducts-container');
     document.getElementById('btn-add-subproduct').addEventListener('click', () => addSubProductRow());
 
@@ -1221,7 +1210,6 @@
       items.forEach(item => addSubProductRow(item.name, item.price, item.unitVariableCost));
     }
 
-    // --- 店舗登録 & 編集保存 ---
     document.getElementById('store-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const editId = document.getElementById('edit-team-id').value;
@@ -1259,6 +1247,7 @@
         votes: 0,
         cumulativeRevenue: 0,
         cumulativeVarCost: 0,
+        itemSales: {},
         reasons: [],
         subProducts: subProducts
       };
@@ -1271,6 +1260,7 @@
           storeData.votes = window.stores[idx].votes || 0;
           storeData.cumulativeRevenue = window.stores[idx].cumulativeRevenue || 0;
           storeData.cumulativeVarCost = window.stores[idx].cumulativeVarCost || 0;
+          storeData.itemSales = window.stores[idx].itemSales || {};
           storeData.reasons = window.stores[idx].reasons || [];
           window.stores[idx] = storeData;
         }
@@ -1360,7 +1350,6 @@
       showToast(`「${name}」を削除しました`);
     };
 
-    // --- マップ描画 ---
     window.renderMapPins = function() {
       ['station', 'gate', 'arcade', 'residential'].forEach(zone => {
         const el = document.getElementById(`map-zone-${zone}`);
@@ -1386,7 +1375,6 @@
       });
     };
 
-    // --- 投票画面（ペルソナ選択） ---
     window.renderVotingPersonaButtons = function() {
       const container = document.getElementById('voting-persona-buttons');
       if (!container) return;
@@ -1417,7 +1405,6 @@
       }
     };
 
-    // --- 商品別数量選択（複数個買い）ステッパー制御 ---
     window.changeItemQty = function(storeId, itemKey, delta) {
       const inputEl = document.getElementById(`qty-${storeId}-${itemKey}`);
       if (!inputEl) return;
@@ -1445,8 +1432,10 @@
         const qty = parseInt(input.value, 10) || 0;
         if (qty > 0) {
           const isMain = input.getAttribute('data-is-main') === 'true';
+          const itemKey = input.getAttribute('data-item-key');
           if (isMain) {
             chosenItems.push({
+              itemKey: 'main',
               name: store.productName || '看板商品',
               price: Number(store.price) || 0,
               unitVariableCost: Number(store.unitVariableCost) || 0,
@@ -1456,6 +1445,7 @@
             const idx = parseInt(input.getAttribute('data-sub-idx'), 10);
             if (store.subProducts && store.subProducts[idx]) {
               chosenItems.push({
+                itemKey: `sub-${idx}`,
                 name: store.subProducts[idx].name || '商品',
                 price: Number(store.subProducts[idx].price) || 0,
                 unitVariableCost: Number(store.subProducts[idx].unitVariableCost) || 0,
@@ -1499,7 +1489,6 @@
       `;
     }
 
-    // --- 直帰（該当なし）選択とペルソナ情報入力 ---
     window.selectNoneForVote = function() {
       document.querySelectorAll('input.item-qty-input').forEach(input => input.value = 0);
       (window.stores || []).forEach(s => updateBasketUI(s.id));
@@ -1569,8 +1558,14 @@
       textarea.focus();
     };
 
-    // --- 確定投票処理 ---
+    // --- ★ 確定投票処理（1端末月1回制限ガード） ---
     window.submitFinalVoteWithReason = function() {
+      const m = window.currentMonth || 4;
+      if (hasVotedCurrentMonth()) {
+        alert(`この端末からは既に【${m}月度】の投票が完了しています。\n次の月度に進むまで再度投票することはできません。`);
+        return;
+      }
+
       if (!window.selectedBasket) {
         alert('STEP 2 で買いたい商品（または「買わずに直帰」）を選択してください！');
         return;
@@ -1590,6 +1585,7 @@
         if (!window.noneReasons) window.noneReasons = [];
         window.noneReasons.unshift(fullReason);
 
+        markVotedCurrentMonth();
         window.saveStorage();
         renderVotingStores();
         updateDashboard();
@@ -1599,7 +1595,8 @@
         if (noneForm) noneForm.classList.add('hidden');
         window.selectedBasket = null;
         updateSelectedStorePreview();
-        showToast('「買わずに直帰」のペルソナ情報を記録しました');
+
+        openVoteSuccessModal();
         return;
       }
 
@@ -1623,9 +1620,15 @@
       store.cumulativeRevenue = (store.cumulativeRevenue || 0) + totalP;
       store.cumulativeVarCost = (store.cumulativeVarCost || 0) + totalV;
 
+      if (!store.itemSales) store.itemSales = {};
+      items.forEach(it => {
+        store.itemSales[it.itemKey] = (store.itemSales[it.itemKey] || 0) + it.quantity;
+      });
+
       if (!store.reasons) store.reasons = [];
       store.reasons.unshift(finalReason);
 
+      markVotedCurrentMonth();
       window.saveStorage();
       renderVotingStores();
       renderTeamsList();
@@ -1634,13 +1637,52 @@
       document.getElementById('voting-reason-input').value = '';
       window.selectedBasket = null;
       updateSelectedStorePreview();
-      showToast(`「${store.storeName}」での購入（合計¥${totalP}）を記録しました！`);
+
+      openVoteSuccessModal();
+    };
+
+    // --- 投票完了モーダル制御 ---
+    function openVoteSuccessModal() {
+      const modal = document.getElementById('vote-success-modal');
+      const desc = document.getElementById('vote-success-desc');
+      const m = window.currentMonth || 4;
+      if (desc) {
+        desc.innerHTML = `あなたの購買投票が【${m}月度】の市場に反映されました！<br><span class="font-bold text-indigo-600">※この端末での今月の投票枠は完了です。</span>`;
+      }
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    window.closeVoteSuccessModal = function() {
+      const modal = document.getElementById('vote-success-modal');
+      if (modal) modal.classList.add('hidden');
+      switchTab('tab-simulation');
     };
 
     // --- 投票店舗カード描画（数量カウンター付き） ---
     window.renderVotingStores = function() {
       const container = document.getElementById('voting-stores-grid');
+      const votedBanner = document.getElementById('already-voted-banner');
+      const submitBtn = document.getElementById('btn-submit-vote-final');
       if (!container) return;
+
+      const isVoted = hasVotedCurrentMonth();
+      if (votedBanner) {
+        if (isVoted) votedBanner.classList.remove('hidden');
+        else votedBanner.classList.add('hidden');
+      }
+      if (submitBtn) {
+        if (isVoted) {
+          submitBtn.disabled = true;
+          submitBtn.classList.remove('from-orange-500', 'to-rose-500', 'hover:from-orange-600', 'hover:to-rose-600', 'cursor-pointer');
+          submitBtn.classList.add('bg-slate-300', 'cursor-not-allowed', 'opacity-60');
+          submitBtn.innerHTML = `✅ ${window.currentMonth}月度は投票済みです`;
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.classList.add('from-orange-500', 'to-rose-500', 'hover:from-orange-600', 'hover:to-rose-600', 'cursor-pointer');
+          submitBtn.classList.remove('bg-slate-300', 'cursor-not-allowed', 'opacity-60');
+          submitBtn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> 購入を確定して投票！`;
+        }
+      }
 
       const storesList = Array.isArray(window.stores) ? window.stores : [];
       const storesVotes = storesList.reduce((sum, s) => sum + (s.votes || 0), 0);
@@ -1694,7 +1736,7 @@
                   </div>
                   <div class="flex items-center gap-1.5 shrink-0 bg-slate-100 p-1 rounded-lg">
                     <button type="button" onclick="changeItemQty('${store.id}', 'main', -1)" class="w-6 h-6 rounded bg-white shadow-xs font-black text-slate-700 hover:bg-rose-50 flex items-center justify-center cursor-pointer">－</button>
-                    <input type="number" id="qty-${store.id}-main" data-store-id="${store.id}" data-is-main="true" value="0" min="0" max="99" onchange="syncStoreBasketFromQty('${store.id}')" class="item-qty-input w-8 text-center bg-transparent font-mono font-black text-xs focus:outline-none">
+                    <input type="number" id="qty-${store.id}-main" data-store-id="${store.id}" data-item-key="main" data-is-main="true" value="0" min="0" max="99" onchange="syncStoreBasketFromQty('${store.id}')" class="item-qty-input w-8 text-center bg-transparent font-mono font-black text-xs focus:outline-none">
                     <button type="button" onclick="changeItemQty('${store.id}', 'main', 1)" class="w-6 h-6 rounded bg-white shadow-xs font-black text-slate-700 hover:bg-emerald-50 flex items-center justify-center cursor-pointer">＋</button>
                   </div>
                 </div>
@@ -1707,7 +1749,7 @@
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 bg-slate-100 p-1 rounded-lg">
                       <button type="button" onclick="changeItemQty('${store.id}', 'sub-${idx}', -1)" class="w-6 h-6 rounded bg-white shadow-xs font-black text-slate-700 hover:bg-rose-50 flex items-center justify-center cursor-pointer">－</button>
-                      <input type="number" id="qty-${store.id}-sub-${idx}" data-store-id="${store.id}" data-is-main="false" data-sub-idx="${idx}" value="0" min="0" max="99" onchange="syncStoreBasketFromQty('${store.id}')" class="item-qty-input w-8 text-center bg-transparent font-mono font-black text-xs focus:outline-none">
+                      <input type="number" id="qty-${store.id}-sub-${idx}" data-store-id="${store.id}" data-item-key="sub-${idx}" data-is-main="false" data-sub-idx="${idx}" value="0" min="0" max="99" onchange="syncStoreBasketFromQty('${store.id}')" class="item-qty-input w-8 text-center bg-transparent font-mono font-black text-xs focus:outline-none">
                       <button type="button" onclick="changeItemQty('${store.id}', 'sub-${idx}', 1)" class="w-6 h-6 rounded bg-white shadow-xs font-black text-slate-700 hover:bg-emerald-50 flex items-center justify-center cursor-pointer">＋</button>
                     </div>
                   </div>
@@ -1805,7 +1847,6 @@
       if (window.lucide) lucide.createIcons();
     };
 
-    // --- クラス模擬投票 ---
     window.simulateBatchVotes = function(count) {
       if (!window.stores || window.stores.length === 0) return;
 
@@ -1846,20 +1887,28 @@
           const st = window.stores[chosenIdx];
           st.votes = (st.votes || 0) + 1;
 
+          if (!st.itemSales) st.itemSales = {};
+          st.itemSales['main'] = (st.itemSales['main'] || 0) + 1;
+
           let simRev = Number(st.price) || 0;
           let simVar = Number(st.unitVariableCost) || 0;
+          let boughtSummary = `${st.productName}×1`;
+
           if (st.subProducts && st.subProducts.length > 0 && Math.random() > 0.3) {
-            const randSub = st.subProducts[Math.floor(Math.random() * st.subProducts.length)];
+            const rIdx = Math.floor(Math.random() * st.subProducts.length);
+            const randSub = st.subProducts[rIdx];
             const qty = Math.floor(Math.random() * 3) + 1;
             simRev += (Number(randSub.price) || 0) * qty;
             simVar += (Number(randSub.unitVariableCost) || 0) * qty;
+            st.itemSales[`sub-${rIdx}`] = (st.itemSales[`sub-${rIdx}`] || 0) + qty;
+            boughtSummary += `、${randSub.name}×${qty}`;
           }
 
           st.cumulativeRevenue = (st.cumulativeRevenue || 0) + simRev;
           st.cumulativeVarCost = (st.cumulativeVarCost || 0) + simVar;
 
           if (!st.reasons) st.reasons = [];
-          st.reasons.unshift(sampleReasonList[Math.floor(Math.random() * sampleReasonList.length)]);
+          st.reasons.unshift(`${sampleReasonList[Math.floor(Math.random() * sampleReasonList.length)]} [購入: ${boughtSummary}]`);
         }
       }
 
@@ -1875,6 +1924,7 @@
         s.votes = 0;
         s.cumulativeRevenue = 0;
         s.cumulativeVarCost = 0;
+        s.itemSales = {};
         s.reasons = [];
       });
       window.noneVotes = 0;
@@ -1899,7 +1949,6 @@
       return true;
     }
 
-    // --- 損益計算（P/L） ---
     function computeFinancialsForStore(store, isEventApplied = false) {
       const DAILY_TRAFFIC = 400;
       const MONTHLY_DAYS = 20;
@@ -1994,11 +2043,19 @@
       const tableBody = document.getElementById('sim-financials-tbody');
       const feedbackGrid = document.getElementById('sim-feedback-grid');
       const storeSelect = document.getElementById('analysis-store-select');
+      const detailSelect = document.getElementById('store-detail-select');
 
       if (storeSelect) {
         const curSelected = storeSelect.value;
         storeSelect.innerHTML = data.results.map(r => `
           <option value="${r.id}" ${r.id === curSelected ? 'selected' : ''}>${r.teamName}: ${r.storeName}</option>
+        `).join('');
+      }
+
+      if (detailSelect) {
+        const curDetail = detailSelect.value;
+        detailSelect.innerHTML = data.results.map(r => `
+          <option value="${r.id}" ${r.id === curDetail ? 'selected' : ''}>${r.teamName}: ${r.storeName}</option>
         `).join('');
       }
 
@@ -2093,6 +2150,83 @@
 
       renderCharts(data.results, data.noneVotes);
       renderEventImpactAnalysis();
+      renderStoreDetailAnalysis();
+    };
+
+    // --- ★ 自店舗の商品別出数＆お客様の声ドリルダウン描画 ---
+    window.renderStoreDetailAnalysis = function() {
+      const select = document.getElementById('store-detail-select');
+      const itemsContainer = document.getElementById('store-detail-items-list');
+      const reasonsContainer = document.getElementById('store-detail-reasons-list');
+      const votesCountEl = document.getElementById('store-detail-votes-count');
+      if (!select || !itemsContainer || !reasonsContainer) return;
+
+      const storeId = select.value;
+      const store = (window.stores || []).find(s => s.id === storeId) || (window.stores || [])[0];
+
+      if (!store) {
+        itemsContainer.innerHTML = `<p class="text-xs text-slate-400">店舗データがありません。</p>`;
+        reasonsContainer.innerHTML = `<p class="text-xs text-slate-400">購入理由はありません。</p>`;
+        return;
+      }
+
+      if (votesCountEl) votesCountEl.textContent = `総購入者: ${store.votes || 0}人`;
+
+      const itemSales = store.itemSales || {};
+      const subProducts = Array.isArray(store.subProducts) ? store.subProducts : [];
+
+      let itemsHtml = '';
+
+      // 看板商品
+      const mainQty = itemSales['main'] || 0;
+      const mainSales = mainQty * (Number(store.price) || 0);
+      const mainMargin = (Number(store.price) || 0) - (Number(store.unitVariableCost) || 0);
+      itemsHtml += `
+        <div class="p-2.5 rounded-xl border border-indigo-200 bg-indigo-50/40 flex items-center justify-between text-xs">
+          <div class="min-w-0 flex-1 pr-2">
+            <span class="font-black text-indigo-950 block truncate">★看板: ${store.productName || '主力商品'}</span>
+            <span class="text-[10px] text-slate-500 font-mono">単価: ¥${(store.price || 0).toLocaleString()} (限界利益: ¥${mainMargin})</span>
+          </div>
+          <div class="text-right shrink-0">
+            <span class="text-xs font-black text-indigo-700 font-mono">${mainQty} 個</span>
+            <span class="text-[10px] text-slate-500 block font-mono">計 ¥${mainSales.toLocaleString()}</span>
+          </div>
+        </div>
+      `;
+
+      // サブ商品
+      subProducts.forEach((sp, idx) => {
+        const qty = itemSales[`sub-${idx}`] || 0;
+        const sales = qty * (Number(sp.price) || 0);
+        const margin = (Number(sp.price) || 0) - (Number(sp.unitVariableCost) || 0);
+        itemsHtml += `
+          <div class="p-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs">
+            <div class="min-w-0 flex-1 pr-2">
+              <span class="font-bold text-slate-800 block truncate">+ ${sp.name || '商品'}</span>
+              <span class="text-[10px] text-slate-500 font-mono">単価: ¥${(sp.price || 0).toLocaleString()} (限界利益: ¥${margin})</span>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-xs font-black text-orange-600 font-mono">${qty} 個</span>
+              <span class="text-[10px] text-slate-500 block font-mono">計 ¥${sales.toLocaleString()}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      itemsContainer.innerHTML = itemsHtml;
+
+      // この店舗への購入理由リスト
+      const reasons = Array.isArray(store.reasons) ? store.reasons : [];
+      if (reasons.length === 0) {
+        reasonsContainer.innerHTML = `<div class="p-4 text-center text-slate-400 italic text-xs">まだこの店舗への購入投票・コメントがありません。</div>`;
+      } else {
+        reasonsContainer.innerHTML = reasons.map((r, i) => `
+          <div class="p-2.5 rounded-lg bg-white border border-slate-200/80 shadow-2xs">
+            <span class="text-[9px] font-bold text-indigo-600 block mb-0.5">来店客 #${i + 1}</span>
+            <p class="text-slate-700 leading-relaxed font-medium">${r}</p>
+          </div>
+        `).join('');
+      }
     };
 
     window.renderEventImpactAnalysis = function() {
@@ -2276,17 +2410,6 @@
     };
 
     function openAdminConsole() {
-      const container = document.getElementById('admin-target-stores-list');
-      if (container) {
-        container.innerHTML = (window.stores || []).map(store => `
-          <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
-            <input type="checkbox" name="admin-target-store" value="${store.id}" class="rounded text-indigo-600 focus:ring-indigo-500">
-            <span class="font-bold text-slate-800">${store.teamName}</span>
-            <span class="text-[10px] text-slate-500 truncate">(${store.storeName})</span>
-          </label>
-        `).join('');
-      }
-
       const curText = document.getElementById('admin-current-event-text');
       if (curText) {
         if (window.currentEvent) {
@@ -2313,7 +2436,8 @@
       renderMonthBanner();
       window.saveStorage();
       updateDashboard();
-      showToast(`営業月度を「${m}月」に進めました！`);
+      renderVotingStores();
+      showToast(`営業月度を「${m}月」に進めました！(生徒の今月投票枠が更新されます)`);
     };
 
     window.adminSetMonth = function(m) {
@@ -2321,7 +2445,16 @@
       renderMonthBanner();
       window.saveStorage();
       updateDashboard();
+      renderVotingStores();
       showToast(`営業月度を「${m}月」に設定しました！`);
+    };
+
+    window.adminUnlockDeviceVote = function() {
+      const m = window.currentMonth || 4;
+      localStorage.removeItem(`market_voted_month_${m}`);
+      renderVotingStores();
+      closeAdminConsoleModal();
+      showToast(`この端末の【${m}月度】投票制限を解除しました！再度投票できます。`);
     };
 
     window.adminLoadSampleStores = function() {
@@ -2353,77 +2486,6 @@
       clearEvent();
       closeAdminConsoleModal();
       showToast('全データを初期化し、4月にリセットしました');
-    };
-
-    window.selectTargetPreset = function(preset) {
-      const checkboxes = document.querySelectorAll('input[name="admin-target-store"]');
-      checkboxes.forEach(cb => {
-        const store = (window.stores || []).find(s => s.id === cb.value);
-        if (preset === 'all') cb.checked = true;
-        else if (store && store.location === preset) cb.checked = true;
-        else cb.checked = false;
-      });
-    };
-
-    window.loadPresetToAdminForm = function(presetId) {
-      const p = window.marketEventsMaster.find(e => e.id === presetId);
-      if (!p) return;
-      document.getElementById('admin-evt-icon').value = p.icon;
-      document.getElementById('admin-evt-title').value = p.title;
-      document.getElementById('admin-evt-desc').value = p.desc;
-      document.getElementById('admin-evt-boost').value = p.boostRate || 1.0;
-      document.getElementById('admin-evt-costmult').value = p.costMultiplier || 1.0;
-      document.getElementById('admin-evt-advice').value = p.advice;
-
-      if (p.id === 'exam') selectTargetPreset('all');
-      else if (p.id === 'rain') selectTargetPreset('gate');
-      else if (p.id === 'buzz') selectTargetPreset('arcade');
-      else selectTargetPreset('all');
-    };
-
-    window.adminApplyCustomEvent = function() {
-      const title = document.getElementById('admin-evt-title').value.trim();
-      const desc = document.getElementById('admin-evt-desc').value.trim();
-      const icon = document.getElementById('admin-evt-icon').value.trim() || '⚡';
-      const boostRate = parseFloat(document.getElementById('admin-evt-boost').value) || 1.0;
-      const costMultiplier = parseFloat(document.getElementById('admin-evt-costmult').value) || 1.0;
-      const advice = document.getElementById('admin-evt-advice').value.trim() || '市場の変化を観察し、4Pの修正案を考えましょう。';
-
-      if (!title) {
-        alert('イベント名を入力してください。');
-        return;
-      }
-
-      const selectedStoreIds = Array.from(document.querySelectorAll('input[name="admin-target-store"]:checked')).map(cb => cb.value);
-
-      window.currentEvent = {
-        id: 'admin_custom_' + Date.now(),
-        title: title,
-        icon: icon,
-        desc: desc || '外部環境に急激な市場変動が発生しました。',
-        boostRate: boostRate,
-        costMultiplier: costMultiplier,
-        targetStoreIds: selectedStoreIds.length > 0 ? selectedStoreIds : null,
-        advice: advice
-      };
-
-      closeAdminConsoleModal();
-      applyEventUI();
-      window.saveStorage();
-      showToast(`管理者設定: 「${title}」を発動しました！`);
-    };
-
-    window.applyEventUI = function() {
-      const voteBanner = document.getElementById('voting-event-alert');
-      if (voteBanner && window.currentEvent) {
-        voteBanner.classList.remove('hidden');
-        document.getElementById('voting-event-title').textContent = `${window.currentEvent.icon} ${window.currentEvent.title}`;
-        document.getElementById('voting-event-desc').textContent = window.currentEvent.desc;
-      }
-      const pingDot = document.getElementById('event-active-dot');
-      if (pingDot && window.currentEvent) pingDot.classList.remove('hidden');
-
-      updateDashboard();
     };
 
     window.clearEvent = function() {
